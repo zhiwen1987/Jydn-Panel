@@ -83,6 +83,10 @@ function resetPanelConfig() {
       </div>
 
       <div>
+        <div class="flex items-center mt-[5px] mb-[5px]">
+          <span class="mr-[10px]">显示顶部标题/时间</span>
+          <NSwitch v-model:value="panelState.panelConfig.topHeaderShow" />
+        </div>
         <div>
           {{ $t('apps.baseSettings.textContent') }}
         </div>

@@ -16,6 +16,7 @@ export function defaultStatePanelConfig(): Panel.panelConfig {
     iconTextIconHideTitle: false,
     logoText: 'Sun-Panel',
     logoImageSrc: '',
+    topHeaderShow: true,
     clockShowSecond: false,
     searchBoxShow: false,
     searchBoxSearchIcon: false,

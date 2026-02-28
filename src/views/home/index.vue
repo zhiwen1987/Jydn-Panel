@@ -350,7 +350,7 @@ function handleSwitchGroupType(groupType: 'website' | 'webpage') {
       >
         <!-- 头 -->
         <div class="mx-[auto] w-[80%]">
-          <div class="flex mx-[auto] items-center justify-center text-white">
+          <div v-if="panelState.panelConfig.topHeaderShow !== false" class="flex mx-[auto] items-center justify-center text-white">
             <div class="logo">
               <span class="text-2xl md:text-6xl font-bold text-shadow">
                 {{ panelState.panelConfig.logoText }}
