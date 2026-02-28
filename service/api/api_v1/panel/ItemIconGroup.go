@@ -55,25 +55,89 @@ func (a *ItemIconGroup) GetList(c *gin.Context) {
 			return err
 		}
 
-		// 判断分组是否为空，为空将自动创建默认分组
+		// 判断分组是否为空，为空将自动创建默认分组（网站 + 网页）
 		if len(groups) == 0 {
-			defaultGroup := models.ItemIconGroup{
-				Title:  "APP",
+			websiteGroup := models.ItemIconGroup{
+				Title:  "网站",
 				UserId: userInfo.ID,
-				Icon:   "material-symbols:ad-group-outline",
+				Icon:   "material-symbols:language",
+				Sort:   1,
 			}
-			if err := tx.Create(&defaultGroup).Error; err != nil {
+			if err := tx.Create(&websiteGroup).Error; err != nil {
 				apiReturn.ErrorDatabase(c, err.Error())
 				return err
 			}
 
-			// 并将当前账号下所有无分组的图标更新到当前组
-			if err := tx.Model(&models.ItemIcon{}).Where("user_id=?", userInfo.ID).Update("item_icon_group_id", defaultGroup.ID).Error; err != nil {
+			webPageGroup := models.ItemIconGroup{
+				Title:  "网页",
+				UserId: userInfo.ID,
+				Icon:   "material-symbols:web-asset",
+				Sort:   2,
+			}
+			if err := tx.Create(&webPageGroup).Error; err != nil {
 				apiReturn.ErrorDatabase(c, err.Error())
 				return err
 			}
 
-			groups = append(groups, defaultGroup)
+			// 将当前账号下所有无分组图标更新到默认“网站”组
+			if err := tx.Model(&models.ItemIcon{}).
+				Where("user_id=? AND (item_icon_group_id=0 OR item_icon_group_id IS NULL)", userInfo.ID).
+				Update("item_icon_group_id", websiteGroup.ID).Error; err != nil {
+				apiReturn.ErrorDatabase(c, err.Error())
+				return err
+			}
+
+			groups = append(groups, websiteGroup, webPageGroup)
+		} else {
+			// 兼容旧数据：
+			// 1) 历史默认组 APP 自动改名为“网站”
+			// 2) 自动补一个“网页”分组
+			hasWebsite := false
+			hasWebPage := false
+			for i := range groups {
+				if groups[i].Title == "网站" {
+					hasWebsite = true
+				}
+				if groups[i].Title == "网页" {
+					hasWebPage = true
+				}
+			}
+
+			if !hasWebsite {
+				for i := range groups {
+					if groups[i].Title == "APP" {
+						if err := tx.Model(&models.ItemIconGroup{}).
+							Where("id=? AND user_id=?", groups[i].ID, userInfo.ID).
+							Updates(map[string]interface{}{
+								"title": "网站",
+								"icon":  "material-symbols:language",
+								"sort":  1,
+							}).Error; err != nil {
+							apiReturn.ErrorDatabase(c, err.Error())
+							return err
+						}
+						groups[i].Title = "网站"
+						groups[i].Icon = "material-symbols:language"
+						groups[i].Sort = 1
+						hasWebsite = true
+						break
+					}
+				}
+			}
+
+			if !hasWebPage {
+				webPageGroup := models.ItemIconGroup{
+					Title:  "网页",
+					UserId: userInfo.ID,
+					Icon:   "material-symbols:web-asset",
+					Sort:   2,
+				}
+				if err := tx.Create(&webPageGroup).Error; err != nil {
+					apiReturn.ErrorDatabase(c, err.Error())
+					return err
+				}
+				groups = append(groups, webPageGroup)
+			}
 		}
 
 		// 返回 nil 提交事务
