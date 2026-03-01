@@ -150,17 +150,22 @@ async function getTitleByUrl(url: string) {
   try {
     const { code, data } = await getSiteFavicon<{ iconUrl?: string, pageTitle?: string }>(url)
     if (code === 0) {
-      if (data.pageTitle)
+      if (data.pageTitle) {
         model.value.title = data.pageTitle
-      else
-        ms.warning('目标站点可能开启反爬，暂时无法自动获取标题，请手动填写')
+      }
+      else {
+        ms.warning('目标站点可能开启反爬，暂时无法自动获取标题，已自动回填地址')
+        model.value.title = url
+      }
     }
     else {
-      ms.error('获取标题失败')
+      ms.error('获取标题失败，已自动回填地址')
+      model.value.title = url
     }
   }
   catch (error) {
-    ms.error('获取标题失败')
+    ms.error('获取标题失败，已自动回填地址')
+    model.value.title = url
   }
   getIconLoading.value[0] = false
 }
@@ -220,7 +225,7 @@ function getGroupListOptions() {
 
         <NFormItem path="title" :label="$t('common.title')">
           <NInputGroup>
-            <NInput v-model:value="model.title" type="text" show-count :maxlength="titleMaxLength" />
+            <NInput v-model:value="model.title" type="text" show-count clearable :maxlength="titleMaxLength" />
             <NButton :disabled="!model.url" :loading="getIconLoading[0]" @click="getTitleByUrl(model.url)">
               获取标题
             </NButton>
@@ -233,7 +238,7 @@ function getGroupListOptions() {
         <NFormItem path="url" :label="$t('iconItem.url')">
           <!-- <NSelect :style="{ width: '100px' }" :options="urlProtocolOptions" /> -->
           <NInputGroup>
-            <NInput v-model:value="model.url" type="text" :maxlength="1000" placeholder="http(s)://" />
+            <NInput v-model:value="model.url" type="text" clearable :maxlength="1000" placeholder="http(s)://" @blur="() => { if(!model.title && model.url) getTitleByUrl(model.url) }" />
             <NButton :disabled="!model.url" :loading="getIconLoading[0]" @click="getIconByUrl(model.url, 0)">
               {{ $t('iconItem.getIcon') }}
             </NButton>
