@@ -668,21 +668,22 @@ function getGroupDotTop(groupId?: number) {
           </div>
           <div
             v-if="panelState.panelConfig.searchBoxShow"
-            class="flex items-center mt-[20px] mx-auto sm:w-full lg:w-[80%]"
+            class="flex items-center justify-between mt-[20px] mx-auto sm:w-full lg:w-[80%]"
             :style="{ marginBottom: `${panelState.panelConfig.searchToBelowGapPx ?? 30}px` }"
           >
             <div class="flex-1">
               <SearchBox @itemSearch="itemFrontEndSearch" />
             </div>
-            <!-- 移动端：登录按钮 -->
-            <div v-if="isMobile" class="ml-2 flex items-center">
+            <!-- 移动端：登录按钮（右对齐、更大） -->
+            <div v-if="isMobile" class="ml-2">
               <NButton
-                circle
                 color="#2a2a2a6b"
+                class="!h-10 !w-10"
+                circle
                 @click="router.push('/login')"
               >
                 <template #icon>
-                  <SvgIcon class="text-xl text-white" icon="material-symbols:account-circle" />
+                  <SvgIcon class="text-2xl text-white" icon="material-symbols:account-circle" />
                 </template>
               </NButton>
             </div>
@@ -1148,7 +1149,7 @@ html {
   /* 移动端图标整体进一步缩小 */
   .icon-info-box > div,
   .icon-small-box > div {
-    padding: 0.5px !important;
+    padding: 0 !important;
     overflow: hidden;
     box-sizing: border-box;
   }
