@@ -325,14 +325,14 @@ function getDropdownMenuOptions() {
       'div', 
       { class: 'flex items-center gap-2' }, 
       [
-        h(SvgIcon, { icon: iconName, style: 'font-size: 16px;' }),
+        h(SvgIcon, { icon: iconName, style: 'font-size: 16px; color: #666;' }),
         h('span', null, label)
       ]
     )
   }
 
   dropdownMenuOptions.push({
-    label: () => renderIconLabel('打开链接', 'ph:link-bold'),
+    label: () => renderIconLabel('打开链接', 'mdi:wan'), // 使用系统里确定有的常见图标代替
     key: 'newWindows',
   })
 
@@ -343,7 +343,7 @@ function getDropdownMenuOptions() {
 
   if (currentRightSelectItem.value?.lanUrl && panelState.networkMode === PanelStateNetworkModeEnum.wan) {
     dropdownMenuOptions.push({
-      label: () => renderIconLabel('打开内网链接', 'ph:link-bold'),
+      label: () => renderIconLabel('打开内网链接', 'material-symbols:lan-outline-rounded'),
       key: 'openLanUrl',
     })
     
@@ -355,7 +355,7 @@ function getDropdownMenuOptions() {
 
   if (currentRightSelectItem.value?.lanUrl && panelState.networkMode === PanelStateNetworkModeEnum.lan) {
     dropdownMenuOptions.push({
-      label: () => renderIconLabel('打开外网链接', 'ph:link-bold'),
+      label: () => renderIconLabel('打开外网链接', 'mdi:wan'),
       key: 'openWanUrl',
     })
 
