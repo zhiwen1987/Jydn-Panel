@@ -778,8 +778,8 @@ function getGroupDotTop(groupId?: number) {
                       {{ item.title }}
                     </NEllipsis>
                     
-                    <!-- 悬浮操作按钮 -->
-                    <div v-if="!itemGroup.sortStatus" class="opacity-0 group-hover:opacity-100 flex items-center gap-2 transition-opacity ml-2">
+                    <!-- 悬浮操作按钮（移动端不显示） -->
+                    <div v-if="!itemGroup.sortStatus && !isMobile" class="opacity-0 group-hover:opacity-100 flex items-center gap-2 transition-opacity ml-2">
                       <div 
                         class="p-1 rounded bg-black/20 hover:bg-black/40 cursor-pointer flex items-center justify-center text-white"
                         :title="item.pinned ? '取消置顶' : '置顶'"
@@ -907,7 +907,7 @@ function getGroupDotTop(groupId?: number) {
     </div>
 
     <!-- 左侧分组目录 -->
-    <div v-if="panelState.panelConfig.leftCatalogShow !== false" class="left-catalog">
+    <div v-if="panelState.panelConfig.leftCatalogShow !== false && !isMobile" class="left-catalog">
       <div class="left-catalog-track">
         <div
           v-for="group in filterItems"
@@ -1127,6 +1127,26 @@ html {
   }
   .p-2\.5 {
     padding-left: 22px !important;
+  }
+
+  /* 移动端网站类：不显示图标，只显示文字+背景色 */
+  @media (max-width: 500px) {
+    .icon-info-box .app-icon,
+    .icon-small-box .app-icon {
+      background: rgba(255,255,255,0.15) !important;
+      border-radius: 8px;
+      padding: 8px !important;
+    }
+    .icon-info-box .app-icon :deep(.icon),
+    .icon-small-box .app-icon :deep(.icon) {
+      display: none !important;
+    }
+    .icon-info-box .app-icon :deep(.text),
+    .icon-small-box .app-icon :deep(.text) {
+      display: block !important;
+      color: #fff !important;
+      font-weight: 500;
+    }
   }
 }
 
