@@ -4,7 +4,7 @@ import { NBackTop, NButton, NButtonGroup, NDropdown, NModal, NSkeleton, NSpin, N
 import { computed, nextTick, onMounted, onUnmounted, ref, h } from 'vue'
 import { AppIcon, AppStarter, EditItem } from './components'
 import { Clock, SearchBox, SystemMonitor } from '@/components/deskModule'
-import { SvgIcon } from '@/components/common'
+import { SvgIcon, SvgIconOnline } from '@/components/common'
 import { deletes, getListByGroupId, saveSort } from '@/api/panel/itemIcon'
 import { getList as getGroupList } from '@/api/panel/itemIconGroup'
 
@@ -669,7 +669,7 @@ function getGroupDotTop(groupId?: number) {
                         :title="item.pinned ? '取消置顶' : '置顶'"
                         @click.stop="quickTogglePinWebpage(item)"
                       >
-                        <SvgIcon class="text-sm" :icon="item.pinned ? 'mdi:pin-off' : 'mdi:pin'" />
+                        <SvgIconOnline class="text-sm" :icon="item.pinned ? 'mdi:pin-off' : 'mdi:pin'" />
                       </div>
                       <div 
                         class="p-1 rounded bg-black/20 hover:bg-black/40 cursor-pointer flex items-center justify-center text-white"
@@ -1071,12 +1071,12 @@ html {
 
 .webpage-list-container {
   /* 固定最大高度以容纳约 10 行完整的网页条目，避免出现被截断半行的情况 */
-  height: calc(3rem * 10 + 0.5rem * 9);
-  max-height: calc(3rem * 10 + 0.5rem * 9);
+  height: calc(3rem * 10 + 0.25rem * 9);
+  max-height: calc(3rem * 10 + 0.25rem * 9);
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px; /* 防止滚动条紧贴文字 */
-  gap: 0.5rem; /* 对应原来的 mb-2 */
+  gap: 0.25rem; /* 行间距（更紧凑） */
   display: flex;
   flex-direction: column;
 }
