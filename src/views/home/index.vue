@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { VueDraggable } from 'vue-draggable-plus'
 import { NBackTop, NButton, NButtonGroup, NDropdown, NModal, NSkeleton, NSpin, useDialog, useMessage } from 'naive-ui'
-import { nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { AppIcon, AppStarter, EditItem } from './components'
 import { Clock, SearchBox, SystemMonitor } from '@/components/deskModule'
 import { SvgIcon } from '@/components/common'
@@ -27,6 +27,8 @@ const panelState = usePanelState()
 const authStore = useAuthStore()
 
 const scrollContainerRef = ref<HTMLElement | undefined>(undefined)
+const groupRefs = ref<Record<number, HTMLElement | null>>({})
+const groupDotMap = ref<Record<number, number>>({})
 
 const editItemInfoShow = ref<boolean>(false)
 const editItemInfoData = ref<Panel.ItemInfo | null>(null)
@@ -48,6 +50,26 @@ const settingModalShow = ref(false)
 const items = ref<ItemGroup[]>([])
 const filterItems = ref<ItemGroup[]>([])
 const currentGroupType = ref<'website' | 'webpage'>('website')
+
+const fixedElementStyle = computed(() => {
+  const pos = panelState.panelConfig.floatingToolsPosition || 'right-bottom'
+  const rightOffset = panelState.panelConfig.rightScrollBarShow === false ? '10px' : '24px'
+
+  // 让悬浮按钮在“右上角”时也遵循用户配置的上边距/上内边距
+  // 说明：原先内容区用 marginTop(%) + paddingTop(px) 控制顶部留白，这里用 vh + px 近似匹配视觉预期
+  const marginTop = Number(panelState.panelConfig.marginTop ?? 0)
+  const paddingTop = Number(panelState.panelConfig.paddingTop ?? 0)
+  const topOffset = `calc(${marginTop}vh + ${paddingTop}px + 12px)`
+
+  switch (pos) {
+    case 'right-top':
+      return { right: rightOffset, top: topOffset }
+    case 'right-middle':
+      return { right: rightOffset, top: '50%', transform: 'translateY(-50%)' }
+    default:
+      return { right: rightOffset, bottom: '50px' }
+  }
+})
 
 function openPage(openMethod: number, url: string, title?: string) {
   switch (openMethod) {
@@ -100,6 +122,7 @@ function getList() {
         updateItemIconGroupByNet(i, element.id)
     }
     filterItems.value = items.value
+    nextTick(() => recalcCatalogDots())
     // console.log(items)
   })
 }
@@ -109,6 +132,7 @@ function updateItemIconGroupByNet(itemIconGroupIndex: number, itemIconGroupId: n
   getListByGroupId<Common.ListResponse<Panel.ItemInfo[]>>(itemIconGroupId).then((res) => {
     if (res.code === 0)
       items.value[itemIconGroupIndex].items = res.data.list
+    nextTick(() => recalcCatalogDots())
   })
 }
 
@@ -267,6 +291,12 @@ onMounted(() => {
   // 设置标题
   if (panelState.panelConfig.logoText)
     setTitle(panelState.panelConfig.logoText)
+
+  window.addEventListener('resize', recalcCatalogDots)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', recalcCatalogDots)
 })
 
 // 前端搜索过滤
@@ -326,6 +356,51 @@ function handleSwitchGroupType(groupType: 'website' | 'webpage') {
   currentGroupType.value = groupType
   getList()
 }
+
+function setGroupRef(el: any, groupId?: number) {
+  if (!groupId)
+    return
+  groupRefs.value[groupId] = el as HTMLElement | null
+}
+
+function scrollToGroup(groupId?: number) {
+  if (!groupId || !scrollContainerRef.value)
+    return
+  const target = groupRefs.value[groupId]
+  if (!target)
+    return
+  const container = scrollContainerRef.value
+  const top = target.offsetTop - 20
+  container.scrollTo({ top, behavior: 'smooth' })
+}
+
+function recalcCatalogDots() {
+  if (!scrollContainerRef.value)
+    return
+
+  const container = scrollContainerRef.value
+  const total = Math.max(1, container.scrollHeight)
+  const nextMap: Record<number, number> = {}
+
+  for (const key of Object.keys(groupRefs.value)) {
+    const id = Number(key)
+    const target = groupRefs.value[id]
+    if (!target)
+      continue
+    const ratio = target.offsetTop / total
+    nextMap[id] = Math.max(0, Math.min(100, ratio * 100))
+  }
+
+  groupDotMap.value = nextMap
+}
+
+function getGroupDotTop(groupId?: number) {
+  if (!groupId)
+    return '0%'
+  const v = groupDotMap.value[groupId] ?? 0
+  return `${v}%`
+}
+
 </script>
 
 <template>
@@ -339,18 +414,24 @@ function handleSwitchGroupType(groupType: 'website' | 'webpage') {
       }"
     />
     <div class="mask" :style="{ backgroundColor: `rgba(0,0,0,${panelState.panelConfig.backgroundMaskNumber})` }" />
-    <div ref="scrollContainerRef" class="absolute w-full h-full overflow-auto">
+    <div
+      ref="scrollContainerRef"
+      class="absolute w-full h-full overflow-y-auto overflow-x-hidden"
+      :class="panelState.panelConfig.rightScrollBarShow === false ? 'hide-native-scrollbar' : 'show-native-scrollbar'"
+    >
       <div
         class="p-2.5 mx-auto"
         :style="{
           marginTop: `${panelState.panelConfig.marginTop}%`,
           marginBottom: `${panelState.panelConfig.marginBottom}%`,
+          paddingTop: `${panelState.panelConfig.paddingTop || 0}px`,
+          paddingBottom: `${panelState.panelConfig.paddingBottom || 0}px`,
           maxWidth: (panelState.panelConfig.maxWidth ?? '1200') + panelState.panelConfig.maxWidthUnit,
         }"
       >
         <!-- 头 -->
         <div class="mx-[auto] w-[80%]">
-          <div v-if="panelState.panelConfig.topHeaderShow !== false" class="flex mx-[auto] items-center justify-center text-white">
+          <div v-if="panelState.panelConfig.topHeaderShow" class="flex mx-[auto] items-center justify-center text-white">
             <div class="logo">
               <span class="text-2xl md:text-6xl font-bold text-shadow">
                 {{ panelState.panelConfig.logoText }}
@@ -403,6 +484,7 @@ function handleSwitchGroupType(groupType: 'website' | 'webpage') {
           <!-- 组纵向排列 -->
           <div
             v-for="(itemGroup, itemGroupIndex) in filterItems" :key="itemGroupIndex"
+            :ref="(el) => setGroupRef(el, itemGroup.id)"
             class="item-list mt-[50px]"
             :class="itemGroup.sortStatus ? 'shadow-2xl border shadow-[0_0_30px_10px_rgba(0,0,0,0.3)]  p-[10px] rounded-2xl' : ''"
             @mouseenter="handleSetHoverStatus(itemGroupIndex, true)"
@@ -427,76 +509,107 @@ function handleSwitchGroupType(groupType: 'website' | 'webpage') {
               </div>
             </div>
 
-            <!-- 详情图标 -->
-            <div v-if="panelState.panelConfig.iconStyle === PanelPanelConfigStyleEnum.info">
+            <!-- 网页分组：默认列表（每行一个） -->
+            <div v-if="currentGroupType === 'webpage'">
               <div v-if="itemGroup.items">
                 <VueDraggable
                   v-model="itemGroup.items" item-key="sort" :animation="300"
-                  class="icon-info-box"
+                  class="w-full"
                   filter=".not-drag"
                   :disabled="!itemGroup.sortStatus"
                 >
-                  <div v-for="item, index in itemGroup.items" :key="index" :title="item.description" @contextmenu="(e) => handleContextMenu(e, itemGroupIndex, item)">
-                    <AppIcon
-                      :class="itemGroup.sortStatus ? 'cursor-move' : 'cursor-pointer'"
-                      :item-info="item"
-                      :icon-text-color="panelState.panelConfig.iconTextColor"
-                      :icon-text-info-hide-description="panelState.panelConfig.iconTextInfoHideDescription || false"
-                      :icon-text-icon-hide-title="panelState.panelConfig.iconTextIconHideTitle || false"
-                      :style="0"
-                      @click="handleItemClick(itemGroupIndex, item)"
-                    />
+                  <div
+                    v-for="item, index in itemGroup.items"
+                    :key="index"
+                    class="w-full py-2 px-3 mb-2 rounded-lg bg-black/20 text-white"
+                    :class="itemGroup.sortStatus ? 'cursor-move' : 'cursor-pointer'"
+                    :title="item.description || item.title"
+                    @click="handleItemClick(itemGroupIndex, item)"
+                    @contextmenu="(e) => handleContextMenu(e, itemGroupIndex, item)"
+                  >
+                    <div class="truncate">{{ item.title }}</div>
                   </div>
 
-                  <div v-if="itemGroup.items.length === 0" class="not-drag">
-                    <AppIcon
-                      :class="itemGroup.sortStatus ? 'cursor-move' : 'cursor-pointer'"
-                      :item-info="{ icon: { itemType: 3, text: 'subway:add' }, title: t('common.add'), url: '', openMethod: 0 }"
-                      :icon-text-color="panelState.panelConfig.iconTextColor"
-                      :icon-text-info-hide-description="panelState.panelConfig.iconTextInfoHideDescription || false"
-                      :icon-text-icon-hide-title="panelState.panelConfig.iconTextIconHideTitle || false"
-                      :style="0"
-                      @click="handleAddItem(itemGroup.id)"
-                    />
+                  <div v-if="itemGroup.items.length === 0" class="not-drag text-white/70 py-2 px-3">
+                    {{ $t('common.add') }}
                   </div>
                 </VueDraggable>
               </div>
             </div>
 
-            <!-- APP图标宫型盒子 -->
-            <div v-if="panelState.panelConfig.iconStyle === PanelPanelConfigStyleEnum.icon">
-              <div v-if="itemGroup.items">
-                <VueDraggable
-                  v-model="itemGroup.items" item-key="sort" :animation="300"
-                  class="icon-small-box"
+            <!-- 网站分组：保留原图标样式 -->
+            <div v-else>
+              <!-- 详情图标 -->
+              <div v-if="panelState.panelConfig.iconStyle === PanelPanelConfigStyleEnum.info">
+                <div v-if="itemGroup.items">
+                  <VueDraggable
+                    v-model="itemGroup.items" item-key="sort" :animation="300"
+                    class="icon-info-box"
+                    filter=".not-drag"
+                    :disabled="!itemGroup.sortStatus"
+                  >
+                    <div v-for="item, index in itemGroup.items" :key="index" :title="item.description" @contextmenu="(e) => handleContextMenu(e, itemGroupIndex, item)">
+                      <AppIcon
+                        :class="itemGroup.sortStatus ? 'cursor-move' : 'cursor-pointer'"
+                        :item-info="item"
+                        :icon-text-color="panelState.panelConfig.iconTextColor"
+                        :icon-text-info-hide-description="panelState.panelConfig.iconTextInfoHideDescription || false"
+                        :icon-text-icon-hide-title="panelState.panelConfig.iconTextIconHideTitle || false"
+                        :style="0"
+                        @click="handleItemClick(itemGroupIndex, item)"
+                      />
+                    </div>
 
-                  filter=".not-drag"
-                  :disabled="!itemGroup.sortStatus"
-                >
-                  <div v-for="item, index in itemGroup.items" :key="index" :title="item.description" @contextmenu="(e) => handleContextMenu(e, itemGroupIndex, item)">
-                    <AppIcon
-                      :class="itemGroup.sortStatus ? 'cursor-move' : 'cursor-pointer'"
-                      :item-info="item"
-                      :icon-text-color="panelState.panelConfig.iconTextColor"
-                      :icon-text-info-hide-description="!panelState.panelConfig.iconTextInfoHideDescription"
-                      :icon-text-icon-hide-title="panelState.panelConfig.iconTextIconHideTitle || false"
-                      :style="1"
-                      @click="handleItemClick(itemGroupIndex, item)"
-                    />
-                  </div>
+                    <div v-if="itemGroup.items.length === 0" class="not-drag">
+                      <AppIcon
+                        :class="itemGroup.sortStatus ? 'cursor-move' : 'cursor-pointer'"
+                        :item-info="{ icon: { itemType: 3, text: 'subway:add' }, title: t('common.add'), url: '', openMethod: 0 }"
+                        :icon-text-color="panelState.panelConfig.iconTextColor"
+                        :icon-text-info-hide-description="panelState.panelConfig.iconTextInfoHideDescription || false"
+                        :icon-text-icon-hide-title="panelState.panelConfig.iconTextIconHideTitle || false"
+                        :style="0"
+                        @click="handleAddItem(itemGroup.id)"
+                      />
+                    </div>
+                  </VueDraggable>
+                </div>
+              </div>
 
-                  <div v-if="itemGroup.items.length === 0" class="not-drag">
-                    <AppIcon
-                      class="cursor-pointer"
-                      :item-info="{ icon: { itemType: 3, text: 'subway:add' }, title: $t('common.add'), url: '', openMethod: 0 }"
-                      :icon-text-color="panelState.panelConfig.iconTextColor"
-                      :icon-text-info-hide-description="!panelState.panelConfig.iconTextInfoHideDescription"
-                      :icon-text-icon-hide-title="panelState.panelConfig.iconTextIconHideTitle || false"
-                      :style="1"
-                      @click="handleAddItem(itemGroup.id)"
-                    />
-                  </div>
-                </vuedraggable>
+              <!-- APP图标宫型盒子 -->
+              <div v-if="panelState.panelConfig.iconStyle === PanelPanelConfigStyleEnum.icon">
+                <div v-if="itemGroup.items">
+                  <VueDraggable
+                    v-model="itemGroup.items" item-key="sort" :animation="300"
+                    class="icon-small-box"
+
+                    filter=".not-drag"
+                    :disabled="!itemGroup.sortStatus"
+                  >
+                    <div v-for="item, index in itemGroup.items" :key="index" :title="item.description" @contextmenu="(e) => handleContextMenu(e, itemGroupIndex, item)">
+                      <AppIcon
+                        :class="itemGroup.sortStatus ? 'cursor-move' : 'cursor-pointer'"
+                        :item-info="item"
+                        :icon-text-color="panelState.panelConfig.iconTextColor"
+                        :icon-text-info-hide-description="!panelState.panelConfig.iconTextInfoHideDescription"
+                        :icon-text-icon-hide-title="panelState.panelConfig.iconTextIconHideTitle || false"
+                        :style="1"
+                        @click="handleItemClick(itemGroupIndex, item)"
+                      />
+                    </div>
+
+                    <div v-if="itemGroup.items.length === 0" class="not-drag">
+                      <AppIcon
+                        class="cursor-pointer"
+                        :item-info="{ icon: { itemType: 3, text: 'subway:add' }, title: $t('common.add'), url: '', openMethod: 0 }"
+                        :icon-text-color="panelState.panelConfig.iconTextColor"
+                        :icon-text-info-hide-description="!panelState.panelConfig.iconTextInfoHideDescription"
+                        :icon-text-icon-hide-title="panelState.panelConfig.iconTextIconHideTitle || false"
+                        :style="1"
+                        @click="handleAddItem(itemGroup.id)"
+                      />
+                    </div>
+                  </vuedraggable>
+                </div>
               </div>
             </div>
 
@@ -519,6 +632,21 @@ function handleSwitchGroupType(groupType: 'website' | 'webpage') {
       </div>
     </div>
 
+    <!-- 左侧分组目录 -->
+    <div v-if="panelState.panelConfig.leftCatalogShow !== false" class="left-catalog">
+      <div class="left-catalog-track">
+        <div
+          v-for="group in filterItems"
+          :key="`catalog-${group.id}`"
+          class="catalog-dot"
+          :style="{ top: getGroupDotTop(group.id) }"
+          @click="scrollToGroup(group.id)"
+        >
+          <span class="catalog-label">{{ group.title }}</span>
+        </div>
+      </div>
+    </div>
+
     <!-- 右键菜单 -->
     <NDropdown
       placement="bottom-start" trigger="manual" :x="dropdownMenuX" :y="dropdownMenuY"
@@ -526,8 +654,10 @@ function handleSwitchGroupType(groupType: 'website' | 'webpage') {
     />
 
     <!-- 悬浮按钮 -->
-    <div class="fixed-element shadow-[0_0_10px_2px_rgba(0,0,0,0.2)]">
-      <NButtonGroup vertical>
+    <div class="fixed-element" :style="fixedElementStyle">
+      <div class="fixed-tools-shell">
+        <div class="fixed-tools-wrapper">
+          <NButtonGroup vertical>
         <!-- 网络模式切换按钮组 -->
         <NButton
           v-if="panelState.networkMode === PanelStateNetworkModeEnum.lan && panelState.panelConfig.netModeChangeButtonShow" color="#2a2a2a6b"
@@ -558,7 +688,9 @@ function handleSwitchGroupType(groupType: 'website' | 'webpage') {
             <SvgIcon class="text-white font-xl" icon="material-symbols:account-circle" />
           </template>
         </NButton>
-      </NButtonGroup>
+          </NButtonGroup>
+        </div>
+      </div>
 
       <AppStarter v-model:visible="settingModalShow" />
       <!-- <Setting v-model:visible="settingModalShow" /> -->
@@ -566,20 +698,28 @@ function handleSwitchGroupType(groupType: 'website' | 'webpage') {
 
     <NBackTop
       :listen-to="() => scrollContainerRef"
-      :right="10"
+      :right="panelState.panelConfig.rightScrollBarShow === false ? 10 : 24"
       :bottom="10"
       style="background-color:transparent;border: none;box-shadow: none;"
     >
-      <div class="shadow-[0_0_10px_2px_rgba(0,0,0,0.2)]">
-        <NButton color="#2a2a2a6b">
+      <div class="backtop-shell">
+        <div class="backtop-wrapper">
+          <NButton color="#2a2a2a6b">
           <template #icon>
             <SvgIcon class="text-white font-xl" icon="icon-park-outline:to-top" />
           </template>
-        </NButton>
+          </NButton>
+        </div>
       </div>
     </NBackTop>
 
-    <EditItem v-model:visible="editItemInfoShow" :item-info="editItemInfoData" :item-group-id="currentAddItenIconGroupId" @done="handleEditSuccess" />
+    <EditItem
+      v-model:visible="editItemInfoShow"
+      :item-info="editItemInfoData"
+      :item-group-id="currentAddItenIconGroupId"
+      :group-type="currentGroupType"
+      @done="handleEditSuccess"
+    />
 
     <!-- 弹窗 -->
     <NModal
@@ -652,11 +792,34 @@ html {
 
 .fixed-element {
   position: fixed;
-  /* 将元素固定在屏幕上 */
-  right: 10px;
-  /* 距离屏幕顶部的距离 */
-  bottom: 50px;
-  /* 距离屏幕左侧的距离 */
+  z-index: 20;
+}
+
+.fixed-tools-shell,
+.backtop-shell {
+  border-radius: var(--sp-ui-radius);
+  /* 用 shell 做阴影 + 圆角，避免出现“矩形阴影尖角” */
+  box-shadow: 0 0 10px 2px rgba(0, 0, 0, 0.2);
+  background: transparent;
+}
+
+.fixed-tools-wrapper,
+.backtop-wrapper {
+  border-radius: var(--sp-ui-radius);
+  overflow: hidden;
+  background: transparent;
+}
+
+/* 让圆角由外层容器控制，避免 NaiveUI 默认小圆角和用户风格不一致 */
+:global(.fixed-tools-wrapper .n-button),
+:global(.backtop-wrapper .n-button) {
+  border-radius: 0 !important;
+}
+
+/* 避免 NButtonGroup/NButton 自带的背景在圆角外“露底色” */
+:global(.fixed-tools-wrapper .n-button-group),
+:global(.backtop-wrapper .n-button-group) {
+  background: transparent !important;
 }
 
 .icon-info-box {
@@ -679,5 +842,105 @@ html {
   .icon-info-box{
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
+}
+
+.left-catalog {
+  position: fixed;
+  left: 8px;
+  top: 12px;
+  bottom: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: stretch;
+}
+
+.left-catalog-track {
+  height: 100%;
+  width: var(--sp-scrollbar-width, 14px);
+  position: relative;
+  box-sizing: border-box; /* 保证含边框后的实际宽度仍是设定值 */
+  /* 恢复之前：不加背景、不加中线；只保留轻微灰色包边 */
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: var(--sp-ui-radius);
+}
+
+.catalog-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  position: absolute;
+  left: 2px;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.catalog-label {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  border-radius: var(--sp-ui-radius); /* 跟全局一致，不要半圆角 */
+  padding: 6px 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 去掉名称前面的点 */
+.catalog-label::before {
+  content: none;
+}
+
+.catalog-dot:hover .catalog-label {
+  opacity: 1;
+}
+
+:global(:root) {
+  --sp-scrollbar-width: 14px;
+  --sp-ui-radius: 10px;
+}
+
+:global(.show-native-scrollbar) {
+  /* Firefox: thin 会强制变窄，导致和左侧目录条宽度不一致 */
+  scrollbar-width: auto;
+  scrollbar-color: rgba(148, 163, 184, 0.9) transparent;
+}
+
+:global(.show-native-scrollbar::-webkit-scrollbar) {
+  width: var(--sp-scrollbar-width);
+}
+
+:global(.show-native-scrollbar::-webkit-scrollbar-track) {
+  background: transparent;
+  margin: 48px 0;
+}
+
+:global(.show-native-scrollbar::-webkit-scrollbar-thumb) {
+  background: rgba(148, 163, 184, 0.92);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+:global(.show-native-scrollbar::-webkit-scrollbar-thumb:hover) {
+  background: rgba(203, 213, 225, 0.98);
+  background-clip: content-box;
+}
+
+:global(.hide-native-scrollbar) {
+  scrollbar-width: none;
+}
+
+:global(.hide-native-scrollbar::-webkit-scrollbar) {
+  width: 0;
+  height: 0;
 }
 </style>

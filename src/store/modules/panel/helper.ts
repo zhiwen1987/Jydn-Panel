@@ -16,7 +16,7 @@ export function defaultStatePanelConfig(): Panel.panelConfig {
     iconTextIconHideTitle: false,
     logoText: 'Sun-Panel',
     logoImageSrc: '',
-    topHeaderShow: true,
+    topHeaderShow: false,
     clockShowSecond: false,
     searchBoxShow: false,
     searchBoxSearchIcon: false,
@@ -25,11 +25,16 @@ export function defaultStatePanelConfig(): Panel.panelConfig {
     maxWidth: 1200,
     maxWidthUnit: 'px',
     marginX: 5,
+    paddingTop: 0,
+    paddingBottom: 0,
     footerHtml: defaultFooterHtml,
     systemMonitorShow: false,
     systemMonitorShowTitle: true,
     systemMonitorPublicVisitModeShow: false,
     netModeChangeButtonShow: true,
+    floatingToolsPosition: 'right-bottom',
+    leftCatalogShow: true,
+    rightScrollBarShow: true,
 
   }
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { NAvatar, NImage } from 'naive-ui'
-import { computed, ref, withDefaults } from 'vue'
+import { NAvatar } from 'naive-ui'
+import { ref, withDefaults } from 'vue'
 import { SvgIconOnline } from '@/components/common'
 
 interface Prop {
@@ -15,9 +15,6 @@ const defaultStyle = ref({
   width: `${props.size}px`,
   height: `${props.size}px`,
 })
-const iconExt = computed(() => {
-  return props.itemIcon?.src?.split('.').pop()
-})
 </script>
 
 <template>
@@ -31,10 +28,12 @@ const iconExt = computed(() => {
         </template>
 
         <template v-else-if="itemIcon?.itemType === 2">
-          <div v-if="iconExt === 'svg'" :style="{ backgroundColor: (forceBackground ?? itemIcon?.backgroundColor) || defaultBackground, ...defaultStyle }" class="flex justify-center items-center">
-            <img :src="itemIcon?.src" class="w-[35px] h-[35px]">
+          <div
+            class="icon-img-wrapper"
+            :style="{ backgroundColor: (forceBackground ?? itemIcon?.backgroundColor) || defaultBackground, ...defaultStyle }"
+          >
+            <img :src="itemIcon?.src" class="icon-img" alt="icon">
           </div>
-          <NImage v-else :style="{ backgroundColor: (forceBackground ?? itemIcon?.backgroundColor) || defaultBackground, ...defaultStyle }" :src="itemIcon?.src" preview-disabled />
         </template>
 
         <template v-else-if="itemIcon?.itemType === 3">
@@ -50,3 +49,27 @@ const iconExt = computed(() => {
     </slot>
   </div>
 </template>
+
+<style scoped>
+.item-icon {
+  display: inline-flex;
+}
+
+/* 图片图标：保持原比例（contain），不够的留空；背景与在线图标一致；留白宽度与在线图标观感一致 */
+.icon-img-wrapper {
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+.icon-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+</style>

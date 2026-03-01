@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineEmits, defineProps, ref, watch } from 'vue'
 import type { FormInst, FormRules } from 'naive-ui'
-import { NButton, NForm, NFormItem, NGrid, NGridItem, NInput, NInputGroup, NModal, NSelect, useMessage } from 'naive-ui'
+import { NButton, NForm, NFormItem, NInput, NInputGroup, NModal, NSelect, useMessage } from 'naive-ui'
 import IconEditor from './IconEditor.vue'
 import { edit, getSiteFavicon } from '@/api/panel/itemIcon'
 import { getList as getGroupList } from '@/api/panel/itemIconGroup'
@@ -11,6 +11,7 @@ interface Props {
   visible: boolean
   itemInfo: Panel.Info | null
   itemGroupId?: number
+  groupType?: 'website' | 'webpage'
 }
 
 const props = defineProps<Props>()
@@ -83,6 +84,14 @@ const show = computed({
   },
 })
 
+const currentGroupType = computed(() => props.groupType || 'website')
+
+const titleMaxLength = computed(() => (currentGroupType.value === 'webpage' ? 100 : 20))
+
+const modalTitle = computed(() => (props.itemInfo ? t('iconItem.edit') : t('iconItem.add')))
+
+const currentGroupTypeText = computed(() => (currentGroupType.value === 'webpage' ? '网页' : '网站'))
+
 async function editApi() {
   submitLoading.value = true
   try {
@@ -114,12 +123,15 @@ const handleValidateButtonClick = (e: MouseEvent) => {
 async function getIconByUrl(url: string, loadingIndex: number) {
   getIconLoading.value[loadingIndex] = true
   try {
-    const { code, data } = await getSiteFavicon<{ iconUrl: string }>(url)
+    const { code, data } = await getSiteFavicon<{ iconUrl: string, pageTitle?: string }>(url)
     if (code === 0) {
       model.value.icon = {
         itemType: 2,
         src: data.iconUrl,
       }
+      // 标题为空时，顺带自动填充
+      if (!model.value.title && data.pageTitle)
+        model.value.title = data.pageTitle
     }
     else {
       ms.error(t('iconItem.geticonFail'))
@@ -129,6 +141,28 @@ async function getIconByUrl(url: string, loadingIndex: number) {
     ms.error(t('iconItem.geticonFail'))
   }
   getIconLoading.value[loadingIndex] = false
+}
+
+async function getTitleByUrl(url: string) {
+  if (!url)
+    return
+  getIconLoading.value[0] = true
+  try {
+    const { code, data } = await getSiteFavicon<{ iconUrl?: string, pageTitle?: string }>(url)
+    if (code === 0) {
+      if (data.pageTitle)
+        model.value.title = data.pageTitle
+      else
+        ms.warning('目标站点可能开启反爬，暂时无法自动获取标题，请手动填写')
+    }
+    else {
+      ms.error('获取标题失败')
+    }
+  }
+  catch (error) {
+    ms.error('获取标题失败')
+  }
+  getIconLoading.value[0] = false
 }
 
 watch(() => props.visible, (newValue) => {
@@ -142,7 +176,7 @@ watch(() => props.visible, (newValue) => {
 })
 
 function getGroupListOptions() {
-  getGroupList<Common.ListResponse<Panel.ItemIconGroup[]>>().then(({ data, code, msg }) => {
+  getGroupList<Common.ListResponse<Panel.ItemIconGroup[]>>(currentGroupType.value).then(({ data, code, msg }) => {
     if (code === 0) {
       itemIconGroupOptions.value = []
 
@@ -167,21 +201,31 @@ function getGroupListOptions() {
 </script>
 
 <template>
-  <NModal v-model:show="show" preset="card" size="small" style="width: 600px;border-radius: 1rem;" :title="itemInfo ? t('iconItem.edit') : t('iconItem.add')">
+  <NModal v-model:show="show" preset="card" size="small" style="width: 600px;border-radius: 1rem;" :title="modalTitle">
     <div class="h-[600px] overflow-auto p-[5px]">
       <NForm ref="formRef" :model="model" :rules="rules">
-        <NGrid cols="2" :x-gap="10" item-responsive>
-          <NGridItem span="2 500:1">
-            <NFormItem path="itemIconGroupId" :label="t('iconItem.iconGroup')">
-              <NSelect v-model:value="model.itemIconGroupId" :options="itemIconGroupOptions" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem span="2 500:1">
-            <NFormItem path="title" :label="$t('common.title')">
-              <NInput v-model:value="model.title" type="text" show-count :maxlength="20" />
-            </NFormItem>
-          </NGridItem>
-        </NGrid>
+        <div class="mb-3">
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center min-w-0">
+              <span class="w-[52px] text-right mr-2 text-slate-600 dark:text-slate-300">分类：</span>
+              <span>{{ currentGroupTypeText }}</span>
+            </div>
+
+            <div class="flex items-center min-w-[280px]">
+              <span class="w-[52px] text-right mr-2 text-slate-600 dark:text-slate-300">分组：</span>
+              <NSelect v-model:value="model.itemIconGroupId" :options="itemIconGroupOptions" class="flex-1" />
+            </div>
+          </div>
+        </div>
+
+        <NFormItem path="title" :label="$t('common.title')">
+          <NInputGroup>
+            <NInput v-model:value="model.title" type="text" show-count :maxlength="titleMaxLength" />
+            <NButton :disabled="!model.url" :loading="getIconLoading[0]" @click="getTitleByUrl(model.url)">
+              获取标题
+            </NButton>
+          </NInputGroup>
+        </NFormItem>
 
         <NFormItem path="icon" :label="$t('common.icon')">
           <IconEditor v-model:item-icon="model.icon" />

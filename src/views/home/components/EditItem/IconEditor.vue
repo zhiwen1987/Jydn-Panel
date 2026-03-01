@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NButton, NColorPicker, NInput, NRadio, NUpload } from 'naive-ui'
+import { NButton, NColorPicker, NInput, NRadio, NUpload, NUploadDragger } from 'naive-ui'
 import type { UploadFileInfo } from 'naive-ui'
 import { computed, defineProps } from 'vue'
 import { ItemIcon } from '@/components/common'
@@ -141,17 +141,23 @@ const handleUploadFinish = ({
           <div v-if="itemIconInfo.itemType === 2">
             <NInput v-model:value="itemIconInfo.src" class="mb-[5px] w-full" size="small" type="text" :placeholder="$t('iconItem.inputIconUrlOrUpload')" @input="handleChange" />
             <NUpload
-              action="/api/file/uploadImg"
+              action="/api/file/uploadImg?fileType=icon"
               :show-file-list="false"
               name="imgfile"
+              accept="image/*"
               :headers="{
                 token: authStore.token as string,
               }"
               @finish="handleUploadFinish"
             >
-              <NButton size="small">
-                {{ $t('iconItem.selectUpload') }}
-              </NButton>
+              <NUploadDragger>
+                <div class="upload-drop-zone">
+                  <NButton size="small" type="primary" ghost>
+                    {{ $t('iconItem.selectUpload') }}
+                  </NButton>
+                  <span class="ml-2 text-xs text-slate-500">或拖拽图片到这里</span>
+                </div>
+              </NUploadDragger>
             </NUpload>
           </div>
         </div>
@@ -187,5 +193,14 @@ const handleUploadFinish = ({
                       linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%);
     background-size: 16px 16px;
     background-position: 0 0, 8px 8px;
+}
+
+.upload-drop-zone {
+    border: 1px dashed #94a3b8;
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
 }
 </style>

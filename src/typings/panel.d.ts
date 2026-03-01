@@ -57,11 +57,16 @@ declare namespace Panel {
         maxWidth?:number
         maxWidthUnit:string
         marginX?:number
+        paddingTop?:number
+        paddingBottom?:number
         footerHtml?:string
         systemMonitorShow?:boolean
         systemMonitorShowTitle?:boolean
         systemMonitorPublicVisitModeShow?:boolean
         netModeChangeButtonShow?:boolean
+        floatingToolsPosition?: 'right-top' | 'right-middle' | 'right-bottom'
+        leftCatalogShow?: boolean
+        rightScrollBarShow?: boolean
     }
 
     interface userConfig{

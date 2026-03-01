@@ -36,6 +36,12 @@ const maxWidthUnitOption = [
   },
 ]
 
+const floatingToolsPositionOptions = [
+  { label: '右上角', value: 'right-top' },
+  { label: '右中间', value: 'right-middle' },
+  { label: '右下角', value: 'right-bottom' },
+]
+
 watch(panelState.panelConfig, () => {
   if (!isSaveing.value) {
     isSaveing.value = true
@@ -195,7 +201,7 @@ function resetPanelConfig() {
         {{ $t('apps.baseSettings.wallpaper') }}
       </div>
       <NUpload
-        action="/api/file/uploadImg"
+        action="/api/file/uploadImg?fileType=wallpaper"
         :show-file-list="false"
         name="imgfile"
         :headers="{
@@ -250,6 +256,32 @@ function resetPanelConfig() {
 
         <NGridItem span="12 400:12">
           <div class="flex items-center mt-[10px]">
+            <span class="mr-[10px]">悬浮按钮位置</span>
+            <NSelect
+              v-model:value="panelState.panelConfig.floatingToolsPosition"
+              :options="floatingToolsPositionOptions"
+              :style="{ width: '140px' }"
+              size="small"
+            />
+          </div>
+        </NGridItem>
+
+        <NGridItem span="12 400:12">
+          <div class="flex items-center mt-[10px]">
+            <span class="mr-[10px]">左侧分组目录</span>
+            <NSwitch v-model:value="panelState.panelConfig.leftCatalogShow" />
+          </div>
+        </NGridItem>
+
+        <NGridItem span="12 400:12">
+          <div class="flex items-center mt-[10px]">
+            <span class="mr-[10px]">右侧滚动进度条</span>
+            <NSwitch v-model:value="panelState.panelConfig.rightScrollBarShow" />
+          </div>
+        </NGridItem>
+
+        <NGridItem span="12 400:12">
+          <div class="flex items-center mt-[10px]">
             <span class="mr-[10px]">{{ $t('apps.baseSettings.maxWidth') }}</span>
             <div class="flex">
               <NInputGroup>
@@ -275,6 +307,20 @@ function resetPanelConfig() {
           <div class="flex items-center mt-[10px]">
             <span class="mr-[10px]">{{ $t('apps.baseSettings.bottomMargin') }} (%)</span>
             <NSlider v-model:value="panelState.panelConfig.marginBottom" class="max-w-[200px]" :step="1" :max="50" />
+          </div>
+        </NGridItem>
+
+        <NGridItem span="12 400:12">
+          <div class="flex items-center mt-[10px]">
+            <span class="mr-[10px]">上内边距 (px)</span>
+            <NSlider v-model:value="panelState.panelConfig.paddingTop" class="max-w-[200px]" :step="2" :max="200" />
+          </div>
+        </NGridItem>
+
+        <NGridItem span="12 400:12">
+          <div class="flex items-center mt-[10px]">
+            <span class="mr-[10px]">下内边距 (px)</span>
+            <NSlider v-model:value="panelState.panelConfig.paddingBottom" class="max-w-[200px]" :step="2" :max="200" />
           </div>
         </NGridItem>
       </NGrid>

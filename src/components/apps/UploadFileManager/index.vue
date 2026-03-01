@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NAlert, NButton, NButtonGroup, NCard, NEllipsis, NGrid, NGridItem, NImage, NImageGroup, NSpin, useDialog, useMessage } from 'naive-ui'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { deletes, getList } from '@/api/system/file'
 import { set as savePanelConfig } from '@/api/panel/userConfig'
 import { RoundCardModal, SvgIcon } from '@/components/common'
@@ -18,6 +18,9 @@ const ms = useMessage()
 const dialog = useDialog()
 const panelStore = usePanelState()
 const loading = ref(false)
+
+const currentFileType = ref<'icon' | 'wallpaper'>('wallpaper')
+const currentTypeLabel = computed(() => (currentFileType.value === 'wallpaper' ? '壁纸' : '图标'))
 const infoModalState = ref<InfoModalState>({
   show: false,
   title: '',
@@ -26,9 +29,16 @@ const infoModalState = ref<InfoModalState>({
 
 async function getFileList() {
   loading.value = true
-  const { data } = await getList<Common.ListResponse<File.Info[]>>()
+  const { data } = await getList<Common.ListResponse<File.Info[]>>(currentFileType.value)
   imageList.value = data.list
   loading.value = false
+}
+
+function handleSwitchType(t: 'icon' | 'wallpaper') {
+  if (currentFileType.value === t)
+    return
+  currentFileType.value = t
+  getFileList()
 }
 
 async function copyImageUrl(text: string) {
@@ -87,8 +97,19 @@ onMounted(() => {
   <div class="bg-slate-200 dark:bg-zinc-900 p-2 h-full">
     <NSpin v-show="loading" size="small" />
     <NAlert type="info" :bordered="false">
-      {{ $t('apps.uploadsFileManager.alertText') }}
+      {{ $t('apps.uploadsFileManager.alertText') }}（当前：{{ currentTypeLabel }}）
     </NAlert>
+
+    <div class="flex justify-center mt-2">
+      <NButtonGroup size="small">
+        <NButton :type="currentFileType === 'wallpaper' ? 'primary' : 'default'" @click="handleSwitchType('wallpaper')">
+          壁纸
+        </NButton>
+        <NButton :type="currentFileType === 'icon' ? 'primary' : 'default'" @click="handleSwitchType('icon')">
+          图标
+        </NButton>
+      </NButtonGroup>
+    </div>
     <div class="flex justify-center mt-2">
       <div v-if="imageList.length === 0 && !loading" class="flex">
         {{ $t('apps.uploadsFileManager.nothingText') }}

@@ -53,10 +53,16 @@ func (a *FileApi) UploadImg(c *gin.Context) {
 		c.SaveUploadedFile(f, filepath)
 
 		// 像数据库添加记录
+		fileType := strings.ToLower(strings.TrimSpace(c.Query("fileType")))
+		if fileType != "icon" && fileType != "wallpaper" {
+			fileType = ""
+		}
+
 		mFile := models.File{}
-		mFile.AddFile(userInfo.ID, f.Filename, fileExt, filepath)
+		mFile.AddFile(userInfo.ID, f.Filename, fileExt, filepath, fileType)
 		apiReturn.SuccessData(c, gin.H{
 			"imageUrl": filepath[1:],
+			"fileType": fileType,
 		})
 	}
 }
@@ -88,7 +94,7 @@ func (a *FileApi) UploadFiles(c *gin.Context) {
 			// 成功
 			// 像数据库添加记录
 			mFile := models.File{}
-			mFile.AddFile(userInfo.ID, f.Filename, fileExt, filepath)
+			mFile.AddFile(userInfo.ID, f.Filename, fileExt, filepath, "")
 			succMap[f.Filename] = filepath[1:]
 		}
 	}
@@ -99,11 +105,26 @@ func (a *FileApi) UploadFiles(c *gin.Context) {
 	})
 }
 
+type getListReq struct {
+	FileType string `json:"fileType"`
+}
+
 func (a *FileApi) GetList(c *gin.Context) {
+	req := getListReq{}
+	_ = c.ShouldBindJSON(&req) // optional
+
 	list := []models.File{}
 	userInfo, _ := base.GetCurrentUserInfo(c)
 	var count int64
-	if err := global.Db.Order("created_at desc").Find(&list, "user_id=?", userInfo.ID).Count(&count).Error; err != nil {
+
+	db := global.Db.Order("created_at desc").Model(&models.File{})
+	db = db.Where("user_id=?", userInfo.ID)
+	ft := strings.ToLower(strings.TrimSpace(req.FileType))
+	if ft == "icon" || ft == "wallpaper" {
+		db = db.Where("file_type=?", ft)
+	}
+
+	if err := db.Find(&list).Count(&count).Error; err != nil {
 		apiReturn.ErrorDatabase(c, err.Error())
 		return
 	}

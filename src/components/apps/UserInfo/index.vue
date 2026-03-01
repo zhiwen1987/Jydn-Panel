@@ -42,23 +42,14 @@ const updatePasswordModalFormRules: FormRules = {
   oldPassword: {
     required: true,
     trigger: 'blur',
-    min: 6,
-    max: 20,
-    message: t('adminSettingUsers.formRules.passwordLimit'),
   },
   password: {
     required: true,
     trigger: 'blur',
-    min: 6,
-    max: 20,
-    message: t('adminSettingUsers.formRules.passwordLimit'),
   },
   confirmPassword: {
     required: true,
     trigger: 'blur',
-    min: 6,
-    max: 20,
-    message: t('adminSettingUsers.formRules.passwordLimit'),
   },
 }
 
@@ -208,15 +199,15 @@ function handleChangeTheme(value: Theme) {
     <RoundCardModal v-model:show="updatePasswordModalState.show" size="small" preset="card" style="width: 400px" :title="$t('settingUserInfo.updatePassword')">
       <NForm ref="formRef" :model="updatePasswordModalState.form" :rules="updatePasswordModalFormRules">
         <NFormItem path="oldPassword" :label="$t('settingUserInfo.oldPassword')">
-          <NInput v-model:value="updatePasswordModalState.form.oldPassword" :maxlength="20" type="password" :placeholder="$t('settingUserInfo.oldPassword')" />
+          <NInput v-model:value="updatePasswordModalState.form.oldPassword" type="password" :placeholder="$t('settingUserInfo.oldPassword')" />
         </NFormItem>
 
         <NFormItem path="password" :label="$t('settingUserInfo.newPassword')">
-          <NInput v-model:value="updatePasswordModalState.form.password" :maxlength="20" type="password" :placeholder="$t('settingUserInfo.newPassword')" />
+          <NInput v-model:value="updatePasswordModalState.form.password" type="password" :placeholder="$t('settingUserInfo.newPassword')" />
         </NFormItem>
 
         <NFormItem path="confirmPassword" :label="$t('settingUserInfo.confirmPassword')">
-          <NInput v-model:value="updatePasswordModalState.form.confirmPassword" :maxlength="20" type="password" :placeholder="$t('settingUserInfo.confirmPassword')" />
+          <NInput v-model:value="updatePasswordModalState.form.confirmPassword" type="password" :placeholder="$t('settingUserInfo.confirmPassword')" />
         </NFormItem>
       </NForm>
 

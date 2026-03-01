@@ -3,9 +3,12 @@ package panel
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 	"sun-panel/api/api_v1/common/apiData/commonApiStructs"
 	"sun-panel/api/api_v1/common/apiData/panelApiStructs"
@@ -23,6 +26,74 @@ import (
 )
 
 type ItemIcon struct {
+}
+
+func getPageTitle(targetURL string) string {
+	parsed, err := url.Parse(targetURL)
+	if err == nil {
+		host := strings.ToLower(parsed.Host)
+		// 头条：PC页常为JS渲染，优先走m站info接口
+		if strings.Contains(host, "toutiao.com") {
+			reArticle := regexp.MustCompile(`/article/(\d+)`)
+			reA := regexp.MustCompile(`/a(\d+)`)
+			id := ""
+			if m := reArticle.FindStringSubmatch(parsed.Path); len(m) > 1 {
+				id = m[1]
+			} else if m := reA.FindStringSubmatch(parsed.Path); len(m) > 1 {
+				id = m[1]
+			}
+			if id != "" {
+				apiURL := "https://m.toutiao.com/i" + id + "/info/"
+				client := &http.Client{Timeout: 8 * time.Second}
+				req, _ := http.NewRequest(http.MethodGet, apiURL, nil)
+				req.Header.Set("User-Agent", "Mozilla/5.0")
+				if resp, err := client.Do(req); err == nil {
+					defer resp.Body.Close()
+					if body, err := io.ReadAll(io.LimitReader(resp.Body, 1024*1024)); err == nil {
+						var obj map[string]any
+						if json.Unmarshal(body, &obj) == nil {
+							if data, ok := obj["data"].(map[string]any); ok {
+								if t, ok := data["title"].(string); ok && strings.TrimSpace(t) != "" {
+									return strings.TrimSpace(t)
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	client := &http.Client{Timeout: 6 * time.Second}
+	req, err := http.NewRequest(http.MethodGet, targetURL, nil)
+	if err != nil {
+		return ""
+	}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Sun-Panel)")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 512*1024))
+	if err != nil {
+		return ""
+	}
+
+	re := regexp.MustCompile(`(?is)<title[^>]*>(.*?)</title>`)
+	match := re.FindStringSubmatch(string(body))
+	if len(match) < 2 {
+		return ""
+	}
+
+	title := strings.TrimSpace(match[1])
+	title = regexp.MustCompile(`\s+`).ReplaceAllString(title, " ")
+	if len(title) > 200 {
+		title = title[:200]
+	}
+	return title
 }
 
 func (a *ItemIcon) Edit(c *gin.Context) {
@@ -205,11 +276,9 @@ func (a *ItemIcon) GetSiteFavicon(c *gin.Context) {
 		return
 	}
 	resp := panelApiStructs.ItemIconGetSiteFaviconResp{}
+	resp.PageTitle = getPageTitle(req.Url)
 	fullUrl := ""
-	if iconUrl, err := siteFavicon.GetOneFaviconURL(req.Url); err != nil {
-		apiReturn.Error(c, "acquisition failed: get ico error:"+err.Error())
-		return
-	} else {
+	if iconUrl, err := siteFavicon.GetOneFaviconURL(req.Url); err == nil {
 		fullUrl = iconUrl
 	}
 
@@ -219,54 +288,55 @@ func (a *ItemIcon) GetSiteFavicon(c *gin.Context) {
 		return
 	}
 
-	protocol := parsedURL.Scheme
-	global.Logger.Debug("protocol:", protocol)
-	global.Logger.Debug("fullUrl:", fullUrl)
+	if fullUrl != "" {
+		protocol := parsedURL.Scheme
+		global.Logger.Debug("protocol:", protocol)
+		global.Logger.Debug("fullUrl:", fullUrl)
 
-	// 如果URL以双斜杠（//）开头，则使用当前页面协议
-	if strings.HasPrefix(fullUrl, "//") {
-		fullUrl = protocol + "://" + fullUrl[2:]
-	} else if !strings.HasPrefix(fullUrl, "http://") && !strings.HasPrefix(fullUrl, "https://") {
-		// 如果URL既不以http://开头也不以https://开头，则默认为http协议
-		fullUrl = "http://" + fullUrl
-	}
-	global.Logger.Debug("fullUrl:", fullUrl)
-	// 去除图标的get参数
-	{
-		parsedIcoURL, err := url.Parse(fullUrl)
-		if err != nil {
-			apiReturn.Error(c, "acquisition failed: parsed ico URL :"+err.Error())
-			return
+		// 如果URL以双斜杠（//）开头，则使用当前页面协议
+		if strings.HasPrefix(fullUrl, "//") {
+			fullUrl = protocol + "://" + fullUrl[2:]
+		} else if !strings.HasPrefix(fullUrl, "http://") && !strings.HasPrefix(fullUrl, "https://") {
+			// 如果URL既不以http://开头也不以https://开头，则默认为http协议
+			fullUrl = "http://" + fullUrl
 		}
-		fullUrl = parsedIcoURL.Scheme + "://" + parsedIcoURL.Host + parsedIcoURL.Path
-	}
-	global.Logger.Debug("fullUrl:", fullUrl)
+		global.Logger.Debug("fullUrl:", fullUrl)
+		// 去除图标的get参数
+		{
+			parsedIcoURL, err := url.Parse(fullUrl)
+			if err == nil {
+				fullUrl = parsedIcoURL.Scheme + "://" + parsedIcoURL.Host + parsedIcoURL.Path
+			}
+		}
+		global.Logger.Debug("fullUrl:", fullUrl)
 
-	// 生成保存目录
-	configUpload := global.Config.GetValueString("base", "source_path")
-	savePath := fmt.Sprintf("%s/%d/%d/%d/", configUpload, time.Now().Year(), time.Now().Month(), time.Now().Day())
-	isExist, _ := cmn.PathExists(savePath)
-	if !isExist {
-		os.MkdirAll(savePath, os.ModePerm)
-	}
+		// 生成保存目录
+		configUpload := global.Config.GetValueString("base", "source_path")
+		savePath := fmt.Sprintf("%s/%d/%d/%d/", configUpload, time.Now().Year(), time.Now().Month(), time.Now().Day())
+		isExist, _ := cmn.PathExists(savePath)
+		if !isExist {
+			os.MkdirAll(savePath, os.ModePerm)
+		}
 
-	// 下载
-	var imgInfo *os.File
-	{
-		var err error
-		if imgInfo, err = siteFavicon.DownloadImage(fullUrl, savePath, 1024*1024); err != nil {
-			apiReturn.Error(c, "acquisition failed: download"+err.Error())
-			return
+		// 下载
+		var imgInfo *os.File
+		{
+			var err error
+			if imgInfo, err = siteFavicon.DownloadImage(fullUrl, savePath, 1024*1024); err == nil {
+				// 保存到数据库
+				ext := path.Ext(fullUrl)
+				mFile := models.File{}
+				if _, err := mFile.AddFile(userInfo.ID, parsedURL.Host, ext, imgInfo.Name(), "icon"); err == nil {
+					resp.IconUrl = imgInfo.Name()[1:]
+				}
+			}
 		}
 	}
 
-	// 保存到数据库
-	ext := path.Ext(fullUrl)
-	mFile := models.File{}
-	if _, err := mFile.AddFile(userInfo.ID, parsedURL.Host, ext, imgInfo.Name()); err != nil {
-		apiReturn.ErrorDatabase(c, err.Error())
+	if resp.IconUrl == "" && strings.TrimSpace(resp.PageTitle) == "" {
+		apiReturn.Error(c, "acquisition failed")
 		return
 	}
-	resp.IconUrl = imgInfo.Name()[1:]
+
 	apiReturn.SuccessData(c, resp)
 }

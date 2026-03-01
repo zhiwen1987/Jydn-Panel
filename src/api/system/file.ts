@@ -1,8 +1,9 @@
 import { post } from '@/utils/request'
 
-export function getList<T>() {
+export function getList<T>(fileType?: 'icon' | 'wallpaper') {
   return post<T>({
     url: '/file/getList',
+    data: fileType ? { fileType } : {},
   })
 }
 
