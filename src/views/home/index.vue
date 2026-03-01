@@ -5,7 +5,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, h } from 'vue'
 import { AppIcon, AppStarter, EditItem } from './components'
 import { Clock, SearchBox, SystemMonitor } from '@/components/deskModule'
 import { SvgIcon, SvgIconOnline } from '@/components/common'
-import { deletes, getListByGroupId, saveSort } from '@/api/panel/itemIcon'
+import { deletes, edit, getListByGroupId, saveSort } from '@/api/panel/itemIcon'
 import { getList as getGroupList } from '@/api/panel/itemIconGroup'
 
 import { setTitle, updateLocalUserInfo } from '@/utils/cmn'
@@ -212,18 +212,61 @@ function handleRightMenuSelect(key: string | number) {
   }
 }
 
+function sortWebpageItemsInGroup(group: ItemGroup) {
+  if (!group.items)
+    return
+
+  // 置顶在前；其余按创建时间从新到旧（无 createdAt 时用 id 兜底）
+  group.items.sort((a: any, b: any) => {
+    const ap = a?.pinned ? 1 : 0
+    const bp = b?.pinned ? 1 : 0
+    if (bp !== ap)
+      return bp - ap
+
+    const at = a?.createdAt ? new Date(a.createdAt).getTime() : 0
+    const bt = b?.createdAt ? new Date(b.createdAt).getTime() : 0
+    if (bt !== at)
+      return bt - at
+
+    return (b?.id ?? 0) - (a?.id ?? 0)
+  })
+}
+
+function updatePinnedLocal(itemId: number, groupId: number, pinned: boolean) {
+  const group = items.value.find(g => (g.id as number) === groupId)
+  if (!group || !group.items)
+    return
+
+  const target = group.items.find(it => (it.id as number) === itemId)
+  if (!target)
+    return
+
+  ;(target as any).pinned = pinned
+  sortWebpageItemsInGroup(group)
+}
+
 function quickTogglePinWebpage(item: Panel.ItemInfo) {
-  const newItem = { ...item, pinned: !item.pinned }
-  
-  import('@/api/panel/itemIcon').then(({ edit }) => {
-    edit(newItem).then(({ code, msg }) => {
-      if (code === 0) {
-        ms.success(newItem.pinned ? '置顶成功' : '已取消置顶')
-        getList()
-      } else {
-        ms.error(`操作失败：${msg}`)
-      }
-    })
+  const itemId = item.id as number
+  const groupId = item.itemIconGroupId as number
+  const nextPinned = !item.pinned
+
+  // 先本地更新，避免“置顶成功”后整页闪动
+  updatePinnedLocal(itemId, groupId, nextPinned)
+
+  const newItem = { ...item, pinned: nextPinned }
+  edit(newItem).then(({ code, msg }) => {
+    if (code === 0) {
+      ms.success(nextPinned ? '置顶成功' : '已取消置顶')
+      // 不再 getList()，只更新本地列表
+      return
+    }
+
+    // 失败则回滚
+    updatePinnedLocal(itemId, groupId, !nextPinned)
+    ms.error(`操作失败：${msg}`)
+  }).catch((e) => {
+    updatePinnedLocal(itemId, groupId, !nextPinned)
+    ms.error(`操作失败：${e?.message ?? e}`)
   })
 }
 
