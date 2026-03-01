@@ -138,6 +138,7 @@ func (a *FileApi) GetList(c *gin.Context) {
 			"createTime": v.CreatedAt,
 			"updateTime": v.UpdatedAt,
 			"path":       v.Src,
+			"fileType":   v.FileType,
 		})
 	}
 	apiReturn.SuccessListData(c, data, count)

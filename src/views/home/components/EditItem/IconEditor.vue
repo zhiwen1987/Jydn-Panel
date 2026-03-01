@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { NButton, NColorPicker, NInput, NRadio, NUpload, NUploadDragger } from 'naive-ui'
+import { NButton, NColorPicker, NGrid, NGridItem, NInput, NRadio, NSpin, NUpload, NUploadDragger } from 'naive-ui'
 import type { UploadFileInfo } from 'naive-ui'
-import { computed, defineProps } from 'vue'
-import { ItemIcon } from '@/components/common'
+import { computed, defineProps, ref } from 'vue'
+import { ItemIcon, RoundCardModal } from '@/components/common'
 import { useAuthStore } from '@/store'
+import { getList } from '@/api/system/file'
 import { apiRespErrMsg } from '@/utils/request/apiMessage'
 
 const props = defineProps<{
@@ -13,6 +14,33 @@ const emit = defineEmits<{
   (e: 'update:itemIcon', visible: Panel.ItemIcon): void // 定义修改父组件（prop内）的值的事件
 }>()
 const authStore = useAuthStore()
+
+const iconPickerShow = ref(false)
+const iconPickerLoading = ref(false)
+const iconList = ref<File.Info[]>([])
+
+async function loadIconList() {
+  iconPickerLoading.value = true
+  try {
+    const { data } = await getList<Common.ListResponse<File.Info[]>>('icon')
+    iconList.value = data.list || []
+  }
+  finally {
+    iconPickerLoading.value = false
+  }
+}
+
+function openIconPicker() {
+  iconPickerShow.value = true
+  if (iconList.value.length === 0)
+    loadIconList()
+}
+
+function handlePickIcon(src: string) {
+  itemIconInfo.value.src = src
+  emit('update:itemIcon', itemIconInfo.value || null)
+  iconPickerShow.value = false
+}
 
 // 默认图标背景色
 const defautSwatchesBackground = [
@@ -140,25 +168,52 @@ const handleUploadFinish = ({
           <!-- 图片 -->
           <div v-if="itemIconInfo.itemType === 2">
             <NInput v-model:value="itemIconInfo.src" class="mb-[5px] w-full" size="small" type="text" :placeholder="$t('iconItem.inputIconUrlOrUpload')" @input="handleChange" />
-            <NUpload
-              action="/api/file/uploadImg?fileType=icon"
-              :show-file-list="false"
-              name="imgfile"
-              accept="image/*"
-              :headers="{
-                token: authStore.token as string,
-              }"
-              @finish="handleUploadFinish"
-            >
-              <NUploadDragger>
-                <div class="upload-drop-zone">
-                  <NButton size="small" type="primary" ghost>
-                    {{ $t('iconItem.selectUpload') }}
-                  </NButton>
-                  <span class="ml-2 text-xs text-slate-500">或拖拽图片到这里</span>
+
+            <div class="flex items-center gap-2">
+              <NUpload
+                action="/api/file/uploadImg?fileType=icon"
+                :show-file-list="false"
+                name="imgfile"
+                accept="image/*"
+                :headers="{
+                  token: authStore.token as string,
+                }"
+                @finish="handleUploadFinish"
+              >
+                <NUploadDragger>
+                  <div class="upload-drop-zone">
+                    <NButton size="small" type="primary" ghost>
+                      {{ $t('iconItem.selectUpload') }}
+                    </NButton>
+                    <span class="ml-2 text-xs text-slate-500">或拖拽图片到这里</span>
+                  </div>
+                </NUploadDragger>
+              </NUpload>
+
+              <NButton size="small" quaternary type="info" @click="openIconPicker">
+                选择已上传
+              </NButton>
+            </div>
+
+            <RoundCardModal v-model:show="iconPickerShow" style="max-width: 720px;" size="small" title="选择已上传图标">
+              <div class="min-h-[160px]">
+                <NSpin v-show="iconPickerLoading" size="small" />
+                <div v-if="!iconPickerLoading && iconList.length === 0" class="text-slate-500 text-sm">
+                  暂无已上传图标
                 </div>
-              </NUploadDragger>
-            </NUpload>
+
+                <NGrid v-else cols="2 400:4 700:6" :x-gap="8" :y-gap="8">
+                  <NGridItem v-for="(it, idx) in iconList" :key="`icon-pick-${idx}`">
+                    <div class="pick-card" @click="handlePickIcon(it.src)">
+                      <div class="pick-thumb transparent-grid">
+                        <img :src="it.src" class="pick-img" alt="icon">
+                      </div>
+                      <div class="pick-name">{{ it.fileName }}</div>
+                    </div>
+                  </NGridItem>
+                </NGrid>
+              </div>
+            </RoundCardModal>
           </div>
         </div>
       </div>
@@ -202,5 +257,36 @@ const handleUploadFinish = ({
     display: inline-flex;
     align-items: center;
     cursor: pointer;
+}
+
+.pick-card {
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.pick-thumb {
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pick-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.pick-name {
+    padding: 6px 8px;
+    font-size: 12px;
+    color: #475569;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 </style>

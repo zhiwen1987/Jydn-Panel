@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { UploadFileInfo } from 'naive-ui'
-import { NButton, NCard, NColorPicker, NGrid, NGridItem, NInput, NInputGroup, NPopconfirm, NSelect, NSlider, NSwitch, NUpload, NUploadDragger, useMessage } from 'naive-ui'
+import { NButton, NButtonGroup, NCard, NColorPicker, NGrid, NGridItem, NInput, NInputGroup, NPopconfirm, NSelect, NSpin, NSlider, NSwitch, NUpload, NUploadDragger, useMessage } from 'naive-ui'
+import { getList } from '@/api/system/file'
+import { RoundCardModal } from '@/components/common'
 import { useAuthStore, usePanelState } from '@/store'
 import { set as setUserConfig } from '@/api/panel/userConfig'
 import { PanelPanelConfigStyleEnum } from '@/enums/panel'
@@ -11,6 +13,34 @@ const authStore = useAuthStore()
 const panelState = usePanelState()
 const ms = useMessage()
 const showWallpaperInput = ref(false)
+
+const wallpaperPickerShow = ref(false)
+const wallpaperPickerLoading = ref(false)
+const wallpaperList = ref<File.Info[]>([])
+const wallpaperCountLabel = computed(() => wallpaperList.value.length)
+
+async function loadWallpaperList() {
+  wallpaperPickerLoading.value = true
+  try {
+    const { data } = await getList<Common.ListResponse<File.Info[]>>('wallpaper')
+    wallpaperList.value = data.list || []
+  }
+  finally {
+    wallpaperPickerLoading.value = false
+  }
+}
+
+function openWallpaperPicker() {
+  wallpaperPickerShow.value = true
+  if (wallpaperList.value.length === 0)
+    loadWallpaperList()
+}
+
+function handlePickWallpaper(src: string) {
+  panelState.panelConfig.backgroundImageSrc = src
+  setUserConfig({ panel: panelState.panelConfig })
+  wallpaperPickerShow.value = false
+}
 
 const isSaveing = ref(false)
 
@@ -222,6 +252,38 @@ function resetPanelConfig() {
         </NUploadDragger>
       </NUpload>
 
+      <div class="flex justify-end mt-2">
+        <NButton size="small" quaternary type="info" @click="openWallpaperPicker">
+          选择已上传壁纸（{{ wallpaperCountLabel }}）
+        </NButton>
+      </div>
+
+      <RoundCardModal v-model:show="wallpaperPickerShow" style="max-width: 900px;" size="small" title="选择已上传壁纸">
+        <div class="min-h-[180px]">
+          <div class="flex items-center justify-between mb-2">
+            <NButtonGroup size="small">
+              <NButton @click="loadWallpaperList" :loading="wallpaperPickerLoading">
+                刷新
+              </NButton>
+            </NButtonGroup>
+          </div>
+
+          <NSpin v-show="wallpaperPickerLoading" size="small" />
+          <div v-if="!wallpaperPickerLoading && wallpaperList.length === 0" class="text-slate-500 text-sm">
+            暂无已上传壁纸
+          </div>
+
+          <NGrid v-else cols="2 500:3 800:4" :x-gap="10" :y-gap="10">
+            <NGridItem v-for="(it, idx) in wallpaperList" :key="`wall-pick-${idx}`">
+              <div class="wall-pick-card" @click="handlePickWallpaper(it.src)">
+                <div class="wall-pick-thumb" :style="{ background: `url(${it.src}) center / cover no-repeat` }" />
+                <div class="wall-pick-name">{{ it.fileName }}</div>
+              </div>
+            </NGridItem>
+          </NGrid>
+        </div>
+      </RoundCardModal>
+
       <div class="flex items-center mt-[5px]">
         <span class="mr-[10px]">{{ $t('apps.baseSettings.customImageAddress') }}</span>
         <NSwitch v-model:value="showWallpaperInput" />
@@ -360,5 +422,48 @@ function resetPanelConfig() {
 <style scoped>
 .text-shadow{
   text-shadow: 0px 0px 5px gray;
+}
+
+.wall-pick-card {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.wall-pick-thumb {
+  height: 120px;
+  width: 100%;
+}
+
+.wall-pick-name {
+  padding: 6px 8px;
+  font-size: 12px;
+  color: #475569;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wall-pick-card {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.wall-pick-thumb {
+  height: 140px;
+  width: 100%;
+}
+
+.wall-pick-name {
+  padding: 6px 8px;
+  font-size: 12px;
+  color: #475569;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
