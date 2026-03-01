@@ -1115,11 +1115,11 @@ html {
 @media (max-width: 500px) {
   .icon-info-box{
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    gap: 6px;
   }
   .icon-small-box{
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    gap: 6px;
   }
 
   /* 移动端左侧目录不要贴着内容 */
@@ -1130,23 +1130,19 @@ html {
     padding-left: 22px !important;
   }
 
-  /* 移动端内容垂直居中 */
-  .absolute.w-full.h-full.overflow-y-auto {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding-top: 20px;
-    padding-bottom: 20px;
+  /* 移动端图标整体缩小 */
+  .icon-info-box > div,
+  .icon-small-box > div {
+    padding: 4px !important;
   }
-
-  /* 移动端图标文字更小 */
+  .icon-info-box :deep(.icon),
+  .icon-small-box :deep(.icon) {
+    width: 32px !important;
+    height: 32px !important;
+  }
   .icon-info-box :deep(.text),
   .icon-small-box :deep(.text) {
     font-size: 10px !important;
-    line-height: 1.2;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 }
 
