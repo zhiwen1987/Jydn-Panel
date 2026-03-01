@@ -302,39 +302,50 @@ function getDropdownMenuOptions() {
     return h(
       'div',
       {
-        class: 'flex items-center justify-center p-1 rounded hover:bg-black/10 cursor-pointer',
+        class: 'flex items-center justify-center p-1 rounded hover:bg-black/10 cursor-pointer w-[24px] h-[24px]',
         title: '复制链接',
         onClick: (e: MouseEvent) => {
+          e.preventDefault()
           e.stopPropagation()
           copyUrl(url)
         }
       },
-      [h(SvgIcon, { icon: 'typcn:clipboard', class: 'text-sm' })]
+      [h(SvgIcon, { icon: 'typcn:clipboard', style: 'font-size: 16px; color: #666;' })]
     )
   }
 
-  const renderLabelWithCopy = (label: string, url?: string) => {
-    return h('div', { class: 'flex items-center justify-between w-full min-w-[120px]' }, [
-      h('span', label),
-      renderCopyButton(url)
-    ])
+  const renderLabelWithCopy = (label: string, url?: string, key?: string) => {
+    return h(
+      'div', 
+      { 
+        class: 'flex items-center justify-between w-full min-w-[120px]',
+        onClick: (e: MouseEvent) => {
+          // 只阻止冒泡，让它能触发外层的 select 事件
+          handleRightMenuSelect(key || '')
+        }
+      }, 
+      [
+        h('span', label),
+        renderCopyButton(url)
+      ]
+    )
   }
 
   dropdownMenuOptions.push({
-    label: () => renderLabelWithCopy('打开链接', currentRightSelectItem.value?.url),
+    label: () => renderLabelWithCopy('打开链接', currentRightSelectItem.value?.url, 'newWindows'),
     key: 'newWindows',
   })
 
   if (currentRightSelectItem.value?.lanUrl && panelState.networkMode === PanelStateNetworkModeEnum.wan) {
     dropdownMenuOptions.push({
-      label: () => renderLabelWithCopy('打开内网链接', currentRightSelectItem.value?.lanUrl),
+      label: () => renderLabelWithCopy('打开内网链接', currentRightSelectItem.value?.lanUrl, 'openLanUrl'),
       key: 'openLanUrl',
     })
   }
 
   if (currentRightSelectItem.value?.lanUrl && panelState.networkMode === PanelStateNetworkModeEnum.lan) {
     dropdownMenuOptions.push({
-      label: () => renderLabelWithCopy('打开外网链接', currentRightSelectItem.value?.lanUrl),
+      label: () => renderLabelWithCopy('打开外网链接', currentRightSelectItem.value?.lanUrl, 'openWanUrl'),
       key: 'openWanUrl',
     })
   }
