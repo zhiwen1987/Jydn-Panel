@@ -536,7 +536,7 @@ function getGroupDotTop(groupId?: number) {
                   <div
                     v-for="item, index in itemGroup.items"
                     :key="index"
-                    class="group relative w-full py-2 px-3 mb-2 rounded-lg bg-black/20 text-white flex justify-between items-center"
+                    class="group relative w-full py-2 px-3 mb-2 rounded-lg bg-black/20 text-white flex justify-between items-center hover:text-[#fef08a] transition-colors"
                     :class="itemGroup.sortStatus ? 'cursor-move' : 'cursor-pointer'"
                     :title="item.description || item.title"
                     @click="handleItemClick(itemGroupIndex, item)"
@@ -921,7 +921,7 @@ html {
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, color 0.2s;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -934,6 +934,7 @@ html {
 
 .catalog-dot:hover .catalog-label {
   opacity: 1;
+  color: #fef08a;
 }
 
 :global(:root) {
