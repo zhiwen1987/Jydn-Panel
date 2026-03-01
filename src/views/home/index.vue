@@ -130,8 +130,12 @@ function getList() {
 // 从后端获取组下面的图标
 function updateItemIconGroupByNet(itemIconGroupIndex: number, itemIconGroupId: number) {
   getListByGroupId<Common.ListResponse<Panel.ItemInfo[]>>(itemIconGroupId).then((res) => {
-    if (res.code === 0)
+    if (res.code === 0) {
       items.value[itemIconGroupIndex].items = res.data.list
+      if (currentSearchKeyword.value) {
+        itemFrontEndSearch(currentSearchKeyword.value)
+      }
+    }
     nextTick(() => recalcCatalogDots())
   })
 }
@@ -315,8 +319,11 @@ onUnmounted(() => {
 })
 
 // 前端搜索过滤
+const currentSearchKeyword = ref('')
+
 function itemFrontEndSearch(keyword?: string) {
-  keyword = keyword?.trim()
+  currentSearchKeyword.value = keyword ?? ''
+  keyword = currentSearchKeyword.value.trim()
   if (keyword !== '' && panelState.panelConfig.searchBoxSearchIcon) {
     const filteredData = ref<ItemGroup[]>([])
     for (let i = 0; i < items.value.length; i++) {
@@ -328,7 +335,7 @@ function itemFrontEndSearch(keyword?: string) {
         )
       })
       if (element && element.length > 0)
-        filteredData.value.push({ items: element, hoverStatus: false })
+        filteredData.value.push({ ...items.value[i], items: element, hoverStatus: false })
     }
     filterItems.value = filteredData.value
   }
