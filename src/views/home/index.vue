@@ -677,13 +677,13 @@ function getGroupDotTop(groupId?: number) {
 
         <!-- 应用盒子 -->
         <div :style="{ marginLeft: `${panelState.panelConfig.marginX}px`, marginRight: `${panelState.panelConfig.marginX}px` }">
-          <div class="flex justify-center text-white" :style="{ marginTop: `${panelState.panelConfig.searchBoxShow ? 0 : 20}px`, marginBottom: '0px' }">
+          <div class="flex justify-center text-white items-center" :style="{ marginTop: `${panelState.panelConfig.searchBoxShow ? 0 : 20}px`, marginBottom: '0px' }">
             <div
               class="cursor-pointer px-4 py-1 rounded-l-full hover:text-[#fef08a] transition-colors"
               :class="currentGroupType === 'website' ? 'bg-white/30' : 'bg-white/10'"
               @click="handleSwitchGroupType('website')"
             >
-              网站
+              网站导航
             </div>
             <div class="px-2">|</div>
             <div
@@ -691,7 +691,7 @@ function getGroupDotTop(groupId?: number) {
               :class="currentGroupType === 'webpage' ? 'bg-white/30' : 'bg-white/10'"
               @click="handleSwitchGroupType('webpage')"
             >
-              网页
+              网页收藏
             </div>
           </div>
           <!-- 系统监控状态 -->
