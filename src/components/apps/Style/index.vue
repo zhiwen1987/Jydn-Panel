@@ -385,6 +385,28 @@ function resetPanelConfig() {
             <NSlider v-model:value="panelState.panelConfig.paddingBottom" class="max-w-[200px]" :step="2" :max="200" />
           </div>
         </NGridItem>
+
+        <!-- Spacing -->
+        <NGridItem span="12 400:12">
+          <div class="flex items-center mt-[10px]">
+            <span class="mr-[10px]">搜索框到下面间距 (px)</span>
+            <NSlider v-model:value="panelState.panelConfig.searchToBelowGapPx" class="max-w-[200px]" :step="1" :max="100" />
+          </div>
+        </NGridItem>
+
+        <NGridItem span="12 400:12">
+          <div class="flex items-center mt-[10px]">
+            <span class="mr-[10px]">网站/网页到第1分组间距 (px)</span>
+            <NSlider v-model:value="panelState.panelConfig.tabsToFirstGroupGapPx" class="max-w-[200px]" :step="1" :max="120" />
+          </div>
+        </NGridItem>
+
+        <NGridItem span="12 400:12">
+          <div class="flex items-center mt-[10px]">
+            <span class="mr-[10px]">分组与分组间距 (px)</span>
+            <NSlider v-model:value="panelState.panelConfig.groupToGroupGapPx" class="max-w-[200px]" :step="1" :max="120" />
+          </div>
+        </NGridItem>
       </NGrid>
     </NCard>
 

@@ -36,6 +36,11 @@ export function defaultStatePanelConfig(): Panel.panelConfig {
     leftCatalogShow: true,
     rightScrollBarShow: true,
 
+    // Spacing (px)
+    searchToBelowGapPx: 30, // 搜索框到下面（网站/网页切换条）的距离
+    tabsToFirstGroupGapPx: 40, // 网站/网页切换条到第一个分组的距离
+    groupToGroupGapPx: 40, // 分组与分组之间距离
+
   }
 }
 

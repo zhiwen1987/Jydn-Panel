@@ -68,6 +68,11 @@ declare namespace Panel {
         floatingToolsPosition?: 'right-top' | 'right-middle' | 'right-bottom'
         leftCatalogShow?: boolean
         rightScrollBarShow?: boolean
+
+        // Spacing (px)
+        searchToBelowGapPx?: number
+        tabsToFirstGroupGapPx?: number
+        groupToGroupGapPx?: number
     }
 
     interface userConfig{

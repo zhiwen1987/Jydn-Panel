@@ -657,14 +657,18 @@ function getGroupDotTop(groupId?: number) {
               <Clock :hide-second="!panelState.panelConfig.clockShowSecond" />
             </div>
           </div>
-          <div v-if="panelState.panelConfig.searchBoxShow" class="flex mt-[20px] mx-auto sm:w-full lg:w-[80%]">
+          <div
+            v-if="panelState.panelConfig.searchBoxShow"
+            class="flex mt-[20px] mx-auto sm:w-full lg:w-[80%]"
+            :style="{ marginBottom: `${panelState.panelConfig.searchToBelowGapPx ?? 30}px` }"
+          >
             <SearchBox @itemSearch="itemFrontEndSearch" />
           </div>
         </div>
 
         <!-- 应用盒子 -->
         <div :style="{ marginLeft: `${panelState.panelConfig.marginX}px`, marginRight: `${panelState.panelConfig.marginX}px` }">
-          <div class="flex justify-center text-white mt-[20px] mb-[10px]">
+          <div class="flex justify-center text-white" :style="{ marginTop: `${panelState.panelConfig.searchBoxShow ? 0 : 20}px`, marginBottom: '0px' }">
             <div
               class="cursor-pointer px-4 py-1 rounded-l-full hover:text-[#fef08a] transition-colors"
               :class="currentGroupType === 'website' ? 'bg-white/30' : 'bg-white/10'"
@@ -698,13 +702,16 @@ function getGroupDotTop(groupId?: number) {
           <div
             v-for="(itemGroup, itemGroupIndex) in filterItems" :key="itemGroupIndex"
             :ref="(el) => setGroupRef(el, itemGroup.id)"
-            class="item-list mt-[50px]"
+            class="item-list"
+            :style="{
+              marginTop: `${itemGroupIndex === 0 ? (panelState.panelConfig.tabsToFirstGroupGapPx ?? 40) : (panelState.panelConfig.groupToGroupGapPx ?? 40)}px`,
+            }"
             :class="itemGroup.sortStatus ? 'shadow-2xl border shadow-[0_0_30px_10px_rgba(0,0,0,0.3)]  p-[10px] rounded-2xl' : ''"
             @mouseenter="handleSetHoverStatus(itemGroupIndex, true)"
             @mouseleave="handleSetHoverStatus(itemGroupIndex, false)"
           >
             <!-- 分组标题 -->
-            <div class="text-white text-xl font-extrabold mb-[20px] ml-[10px] flex items-center">
+            <div class="text-white text-xl font-extrabold ml-[10px] flex items-center" :style="{ marginBottom: '20px' }">
               <span class="group-title text-shadow flex items-center gap-2">
                 {{ itemGroup.title }}
                 <span v-if="itemGroup.items" class="text-xs bg-white/20 px-2 py-0.5 rounded-full font-normal">
