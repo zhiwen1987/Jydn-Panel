@@ -640,10 +640,10 @@ function getGroupDotTop(groupId?: number) {
                   <div
                     v-for="item, index in (itemGroup.items || [])"
                     :key="index"
-                    class="group relative w-full h-12 px-3 rounded-lg text-white flex justify-between items-center hover:text-[#fef08a] transition-colors shrink-0"
+                    class="group relative w-full h-12 px-3 rounded-lg flex justify-between items-center hover:text-[#fef08a] transition-colors shrink-0"
                     :class="[
                       itemGroup.sortStatus ? 'cursor-move' : 'cursor-pointer',
-                      item.pinned ? 'text-sky-300 bg-black/20' : 'bg-black/20'
+                      item.pinned ? 'text-sky-300 bg-black/20' : 'text-white bg-black/20'
                     ]"
                     :title="item.description"
                     @click="handleItemClick(itemGroupIndex, item)"
@@ -1071,7 +1071,8 @@ html {
 
 .webpage-list-container {
   /* 固定最大高度以容纳约 10 行完整的网页条目，避免出现被截断半行的情况 */
-  max-height: calc(3rem * 10);
+  height: calc(3rem * 10 + 0.5rem * 9);
+  max-height: calc(3rem * 10 + 0.5rem * 9);
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px; /* 防止滚动条紧贴文字 */
