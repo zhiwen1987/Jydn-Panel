@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { VueDraggable } from 'vue-draggable-plus'
-import { NBackTop, NButton, NButtonGroup, NDropdown, NModal, NSkeleton, NSpin, useDialog, useMessage } from 'naive-ui'
+import { NBackTop, NButton, NButtonGroup, NDropdown, NModal, NSkeleton, NSpin, NEllipsis, useDialog, useMessage } from 'naive-ui'
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { AppIcon, AppStarter, EditItem } from './components'
 import { Clock, SearchBox, SystemMonitor } from '@/components/deskModule'
@@ -542,7 +542,10 @@ function getGroupDotTop(groupId?: number) {
                     @click="handleItemClick(itemGroupIndex, item)"
                     @contextmenu="(e) => handleContextMenu(e, itemGroupIndex, item)"
                   >
-                    <div class="webpage-title flex-1" :title="item.title">{{ item.title }}</div>
+                    <!-- 通过 Vue 指令判断文字是否截断再显示原生 title（此处使用封装一个只在溢出时显示 title 的逻辑较繁琐，妥协为外层不加 title，或通过 CSS tooltip 实现，这里用最简单的 css hover + ellipsis 判断比较难，咱们改用自定义组件或者根据字符长度估算，这里用简单的 title 移除，靠用户自行判断，但用户需要“全标题显示” -->
+                    <NEllipsis class="webpage-title flex-1" :tooltip="{ content: item.title, placement: 'top' }" :line-clamp="2">
+                      {{ item.title }}
+                    </NEllipsis>
                     
                     <!-- 悬浮操作按钮 -->
                     <div v-if="!itemGroup.sortStatus" class="opacity-0 group-hover:opacity-100 flex items-center gap-2 transition-opacity ml-2">
@@ -937,12 +940,8 @@ html {
   color: #fef08a;
 }
 
+/* .webpage-title 的相关样式可以去掉，交由 NEllipsis 处理 */
 .webpage-title {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
   text-align: left;
   line-height: 1.5;
   word-break: break-all;
