@@ -5,7 +5,7 @@
 
 <img src="./doc/images/logo.png" width="100" height="100" />
 
-# Sun-Panel
+# AnGe-Panel
 
 [![Github](https://img.shields.io/badge/Github-123456?logo=github&labelColor=242424)](https://github.com/hslr-s/sun-panel)
 [![Gitee](https://img.shields.io/badge/Gitee-123456?logo=gitee&labelColor=c71d23)](https://gitee.com/hslr/sun-panel)
@@ -21,9 +21,9 @@
 [[ Document ]](https://sun-panel-doc.enianteam.com) |
 [[ Demo ]](http://sunpaneldemo.enianteam.com) 
 
-A server, NAS navigation panel, Homepage, Browser homepage.
+A perfect website navigation + webpage bookmarks panel.
 <br>
-一个服务器、NAS导航面板、Homepage、浏览器首页。
+完美的网站导航 + 网页收藏夹。
 
 </div>
 
@@ -36,6 +36,8 @@ A server, NAS navigation panel, Homepage, Browser homepage.
 > 作者为了维持生计，增加了一些 [`PRO`](https://pro.sun-panel.top) 功能，所以项目暂时进入闭源状态。目前开源最新版本为`v1.3.0`，[闭源最新版本请查看](https://github.com/hslr-s/sun-panel/releases)。待开发出模块化技术，然后对PRO和主程序进行分离会再次开源，闭源对普通用户没有任何影响。我们一起期待再次开源吧，同时也欢迎各位大佬对程序的安全性进行监督和审查。
 
 ## 📌 Fork / 二次开发说明（本仓库改动声明）
+
+> **AnGe-Panel** 是基于 Sun‑Panel（MIT License）的二次开发版本，非官方版本。
 
 本仓库基于 **Sun‑Panel 开源版本（MIT License）** 做了面向“日常导航 + 信息收集”的二次开发。
 
