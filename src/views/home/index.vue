@@ -164,6 +164,15 @@ function handleRightMenuSelect(key: string | number) {
     case 'newWindows':
       window.open(jumpUrl)
       break
+    case 'copyUrl':
+      if (jumpUrl) {
+        navigator.clipboard.writeText(jumpUrl).then(() => {
+          ms.success('链接已复制')
+        }).catch(() => {
+          ms.error('复制失败')
+        })
+      }
+      break
     case 'openWanUrl':
       if (currentRightSelectItem.value)
         openPage(currentRightSelectItem.value?.openMethod, currentRightSelectItem.value?.url, currentRightSelectItem.value?.title)
@@ -280,22 +289,25 @@ function handleSaveSort(itemGroup: ItemGroup) {
 function getDropdownMenuOptions() {
   const dropdownMenuOptions = [
     {
-      label: t('iconItem.newWindowOpen'),
+      label: '打开链接',
       key: 'newWindows',
     },
-
+    {
+      label: '复制链接',
+      key: 'copyUrl',
+    },
   ]
 
   if (currentRightSelectItem.value?.lanUrl && panelState.networkMode === PanelStateNetworkModeEnum.wan) {
     dropdownMenuOptions.push({
-      label: t('panelHome.openLanUrl'),
+      label: '打开内网链接',
       key: 'openLanUrl',
     })
   }
 
   if (currentRightSelectItem.value?.lanUrl && panelState.networkMode === PanelStateNetworkModeEnum.lan) {
     dropdownMenuOptions.push({
-      label: t('panelHome.openWanUrl'),
+      label: '打开外网链接',
       key: 'openWanUrl',
     })
   }
