@@ -183,6 +183,21 @@ function handleRightMenuSelect(key: string | number) {
   }
 }
 
+function quickEditWebpage(item: Panel.ItemInfo) {
+  handleEditItem({ ...item } as Panel.ItemInfo)
+}
+
+function quickDeleteWebpage(item: Panel.ItemInfo) {
+  deletes([item.id as number]).then(({ code, msg }) => {
+    if (code === 0) {
+      ms.success(t('common.deleteSuccess'))
+      getList()
+    } else {
+      ms.error(`${t('common.deleteFail')}:${msg}`)
+    }
+  })
+}
+
 function handleContextMenu(e: MouseEvent, itemGroupIndex: number, item: Panel.ItemInfo) {
   if (items.value[itemGroupIndex] && items.value[itemGroupIndex].sortStatus)
     return
@@ -521,13 +536,31 @@ function getGroupDotTop(groupId?: number) {
                   <div
                     v-for="item, index in itemGroup.items"
                     :key="index"
-                    class="w-full py-2 px-3 mb-2 rounded-lg bg-black/20 text-white"
+                    class="group relative w-full py-2 px-3 mb-2 rounded-lg bg-black/20 text-white flex justify-between items-center"
                     :class="itemGroup.sortStatus ? 'cursor-move' : 'cursor-pointer'"
                     :title="item.description || item.title"
                     @click="handleItemClick(itemGroupIndex, item)"
                     @contextmenu="(e) => handleContextMenu(e, itemGroupIndex, item)"
                   >
-                    <div class="truncate">{{ item.title }}</div>
+                    <div class="truncate flex-1">{{ item.title }}</div>
+                    
+                    <!-- 悬浮操作按钮 -->
+                    <div v-if="!itemGroup.sortStatus" class="opacity-0 group-hover:opacity-100 flex items-center gap-2 transition-opacity ml-2">
+                      <div 
+                        class="p-1 rounded bg-black/40 hover:bg-black/60 cursor-pointer flex items-center justify-center text-white"
+                        title="修改"
+                        @click.stop="quickEditWebpage(item)"
+                      >
+                        <SvgIcon class="text-sm" icon="material-symbols:edit" />
+                      </div>
+                      <div 
+                        class="p-1 rounded bg-red-500/80 hover:bg-red-500 cursor-pointer flex items-center justify-center text-white"
+                        title="删除"
+                        @click.stop="quickDeleteWebpage(item)"
+                      >
+                        <SvgIcon class="text-sm" icon="material-symbols:delete" />
+                      </div>
+                    </div>
                   </div>
 
                   <div v-if="itemGroup.items.length === 0" class="not-drag text-white/70 py-2 px-3">

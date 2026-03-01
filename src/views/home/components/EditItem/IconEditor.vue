@@ -141,7 +141,7 @@ const handleUploadFinish = ({
       </NRadio>
     </div>
 
-    <div class=" h-[100px]">
+    <div class="mb-[10px]">
       <div class="flex">
         <div>
           <div class="border rounded-2xl bg-slate-200 overflow-hidden rounded-2xl transparent-grid">
@@ -169,7 +169,7 @@ const handleUploadFinish = ({
           <div v-if="itemIconInfo.itemType === 2">
             <NInput v-model:value="itemIconInfo.src" class="mb-[5px] w-full" size="small" type="text" :placeholder="$t('iconItem.inputIconUrlOrUpload')" @input="handleChange" />
 
-            <div class="flex items-center gap-2">
+            <div class="flex flex-col gap-2">
               <NUpload
                 action="/api/file/uploadImg?fileType=icon"
                 :show-file-list="false"
@@ -190,7 +190,7 @@ const handleUploadFinish = ({
                 </NUploadDragger>
               </NUpload>
 
-              <NButton size="small" quaternary type="info" @click="openIconPicker">
+              <NButton size="small" quaternary type="info" @click="openIconPicker" block>
                 选择已上传
               </NButton>
             </div>
