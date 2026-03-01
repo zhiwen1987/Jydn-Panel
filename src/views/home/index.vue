@@ -1131,6 +1131,15 @@ html {
 
   /* 移动端网站类：不显示图标，只显示文字+背景色 */
   @media (max-width: 500px) {
+    /* 去掉左侧目录后，内容垂直居中 */
+    .absolute.w-full.h-full.overflow-y-auto {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-top: 40px;
+      padding-bottom: 40px;
+    }
+
     .icon-info-box > div,
     .icon-small-box > div {
       background: rgba(255,255,255,0.12) !important;
