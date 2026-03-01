@@ -675,15 +675,14 @@ function getGroupDotTop(groupId?: number) {
               <SearchBox @itemSearch="itemFrontEndSearch" />
             </div>
             <!-- 移动端：登录按钮 -->
-            <div v-if="isMobile" class="ml-2">
+            <div v-if="isMobile" class="ml-2 flex items-center">
               <NButton
                 circle
-                size="medium"
                 color="#2a2a2a6b"
                 @click="router.push('/login')"
               >
                 <template #icon>
-                  <SvgIcon class="text-lg text-white" icon="material-symbols:account-circle" />
+                  <SvgIcon class="text-xl text-white" icon="material-symbols:account-circle" />
                 </template>
               </NButton>
             </div>
@@ -1149,7 +1148,7 @@ html {
   /* 移动端图标整体进一步缩小 */
   .icon-info-box > div,
   .icon-small-box > div {
-    padding: 1px !important;
+    padding: 0.5px !important;
     overflow: hidden;
     box-sizing: border-box;
   }
