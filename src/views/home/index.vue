@@ -643,7 +643,7 @@ function getGroupDotTop(groupId?: number) {
                     class="group relative w-full py-2 px-3 mb-2 rounded-lg text-white flex justify-between items-center hover:text-[#fef08a] transition-colors shrink-0"
                     :class="[
                       itemGroup.sortStatus ? 'cursor-move' : 'cursor-pointer',
-                      item.pinned ? 'bg-[#1e3a8a]/60' : 'bg-black/20'
+                      item.pinned ? 'bg-[#3b82f6]/40' : 'bg-black/20'
                     ]"
                     :title="item.description"
                     @click="handleItemClick(itemGroupIndex, item)"
@@ -669,7 +669,7 @@ function getGroupDotTop(groupId?: number) {
                         :title="item.pinned ? '取消置顶' : '置顶'"
                         @click.stop="quickTogglePinWebpage(item)"
                       >
-                        <SvgIcon class="text-sm" :icon="item.pinned ? 'material-symbols:keep-off' : 'material-symbols:keep'" />
+                        <SvgIcon class="text-sm" :icon="item.pinned ? 'ph:push-pin-slash-bold' : 'ph:push-pin-bold'" />
                       </div>
                       <div 
                         class="p-1 rounded bg-black/20 hover:bg-black/40 cursor-pointer flex items-center justify-center text-white"
@@ -1070,8 +1070,8 @@ html {
 }
 
 .webpage-list-container {
-  /* 固定最大高度以容纳大约 10 行网页条目（每行高度加上间距约 40px），超过则显示滚动条 */
-  max-height: 400px;
+  /* 固定最大高度以容纳约 10 行完整的网页条目，避免出现被截断半行的情况 */
+  max-height: 480px;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px; /* 防止滚动条紧贴文字 */
