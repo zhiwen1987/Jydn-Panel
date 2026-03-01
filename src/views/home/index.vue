@@ -528,8 +528,11 @@ function getGroupDotTop(groupId?: number) {
           >
             <!-- 分组标题 -->
             <div class="text-white text-xl font-extrabold mb-[20px] ml-[10px] flex items-center">
-              <span class="group-title text-shadow">
+              <span class="group-title text-shadow flex items-center gap-2">
                 {{ itemGroup.title }}
+                <span v-if="itemGroup.items" class="text-xs bg-white/20 px-2 py-0.5 rounded-full font-normal">
+                  {{ itemGroup.items.length }}
+                </span>
               </span>
               <div
                 v-if="authStore.visitMode === VisitMode.VISIT_MODE_LOGIN"
