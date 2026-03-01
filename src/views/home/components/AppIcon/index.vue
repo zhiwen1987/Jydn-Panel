@@ -35,7 +35,7 @@ const textColor = computed(() => {
 </script>
 
 <template>
-  <div class="app-icon w-full">
+  <div class="app-icon w-full group">
     <!-- 详情图标 -->
     <div
       v-if="style === PanelPanelConfigStyleEnum.info"
@@ -51,7 +51,7 @@ const textColor = computed(() => {
 
       <!-- 文字 -->
       <!-- 如果为纯白色，将自动根据背景的明暗计算字体的黑白色 -->
-      <div class="text-white flex items-center" :style="{ color: (iconTextColor === '#ffffff') ? textColor : iconTextColor, maxWidth: 'calc(100% - 80px)' }">
+      <div class="text-white flex items-center transition-colors group-hover:text-[#fef08a] group-hover:!text-[#fef08a]" :style="{ color: (iconTextColor === '#ffffff') ? textColor : iconTextColor, maxWidth: 'calc(100% - 80px)' }">
         <div class="app-icon-info-text-box w-full">
           <div class="app-icon-info-text-box-title font-semibold w-full">
             <NEllipsis>
@@ -77,7 +77,7 @@ const textColor = computed(() => {
       </div>
       <div
         v-if="!iconTextIconHideTitle"
-        class="app-icon-small-title text-center app-icon-text-shadow cursor-pointer mt-[2px]"
+        class="app-icon-small-title text-center app-icon-text-shadow cursor-pointer mt-[2px] transition-colors group-hover:text-[#fef08a] group-hover:!text-[#fef08a]"
         :style="{ color: iconTextColor }"
       >
         <span>{{ itemInfo?.title }}</span>

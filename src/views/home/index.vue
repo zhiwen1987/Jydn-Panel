@@ -468,7 +468,7 @@ function getGroupDotTop(groupId?: number) {
         <div :style="{ marginLeft: `${panelState.panelConfig.marginX}px`, marginRight: `${panelState.panelConfig.marginX}px` }">
           <div class="flex justify-center text-white mt-[20px] mb-[10px]">
             <div
-              class="cursor-pointer px-4 py-1 rounded-l-full"
+              class="cursor-pointer px-4 py-1 rounded-l-full hover:text-[#fef08a] transition-colors"
               :class="currentGroupType === 'website' ? 'bg-white/30' : 'bg-white/10'"
               @click="handleSwitchGroupType('website')"
             >
@@ -476,7 +476,7 @@ function getGroupDotTop(groupId?: number) {
             </div>
             <div class="px-2">|</div>
             <div
-              class="cursor-pointer px-4 py-1 rounded-r-full"
+              class="cursor-pointer px-4 py-1 rounded-r-full hover:text-[#fef08a] transition-colors"
               :class="currentGroupType === 'webpage' ? 'bg-white/30' : 'bg-white/10'"
               @click="handleSwitchGroupType('webpage')"
             >
