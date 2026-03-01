@@ -291,11 +291,35 @@ function getDropdownMenuOptions() {
 
   const copyUrl = (url?: string) => {
     if (url) {
-      navigator.clipboard.writeText(url).then(() => {
-        ms.success('链接已复制')
-        dropdownShow.value = false
-      }).catch(() => ms.error('复制失败'))
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+          ms.success('链接已复制')
+          dropdownShow.value = false
+        }).catch(() => {
+          fallbackCopy(url)
+        })
+      } else {
+        fallbackCopy(url)
+      }
     }
+  }
+
+  const fallbackCopy = (text: string) => {
+    const textArea = document.createElement('textarea')
+    textArea.value = text
+    textArea.style.position = 'fixed'
+    textArea.style.top = '-9999px'
+    document.body.appendChild(textArea)
+    textArea.focus()
+    textArea.select()
+    try {
+      document.execCommand('copy')
+      ms.success('链接已复制')
+      dropdownShow.value = false
+    } catch (err) {
+      ms.error('复制失败，可能是浏览器限制')
+    }
+    document.body.removeChild(textArea)
   }
 
   const renderCopyButton = (url?: string) => {
@@ -304,7 +328,8 @@ function getDropdownMenuOptions() {
       {
         class: 'flex items-center justify-center p-1 rounded hover:bg-black/10 cursor-pointer w-[24px] h-[24px]',
         title: '复制链接',
-        onClick: (e: MouseEvent) => {
+        onMousedown: (e: MouseEvent) => {
+          // NDropdown 会在 click 时吃掉事件，用 mousedown 优先拦截并处理
           e.preventDefault()
           e.stopPropagation()
           copyUrl(url)
