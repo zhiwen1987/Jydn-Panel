@@ -633,7 +633,10 @@ function getGroupDotTop(groupId?: number) {
               <div v-if="itemGroup.items">
                 <VueDraggable
                   v-model="itemGroup.items" item-key="sort" :animation="300"
-                  class="w-full webpage-list-container show-native-scrollbar"
+                  :class="[
+                    'w-full webpage-list-container show-native-scrollbar',
+                    (itemGroup.items && itemGroup.items.length > 10) ? 'webpage-list-fixed' : ''
+                  ]"
                   filter=".not-drag"
                   :disabled="!itemGroup.sortStatus"
                 >
@@ -1070,15 +1073,19 @@ html {
 }
 
 .webpage-list-container {
-  /* 固定最大高度以容纳约 10 行完整的网页条目，避免出现被截断半行的情况 */
-  height: calc(3rem * 10 + 0.25rem * 9);
-  max-height: calc(3rem * 10 + 0.25rem * 9);
-  overflow-y: auto;
+  /* 默认：按内容自然高度（用于少于等于10条的分组，避免把分组之间撑出大空白） */
   overflow-x: hidden;
   padding-right: 4px; /* 防止滚动条紧贴文字 */
   gap: 0.25rem; /* 行间距（更紧凑） */
   display: flex;
   flex-direction: column;
+}
+
+.webpage-list-fixed {
+  /* 只有当条目 > 10 时才固定为10行高度，并在容器内滚动 */
+  height: calc(3rem * 10 + 0.25rem * 9);
+  max-height: calc(3rem * 10 + 0.25rem * 9);
+  overflow-y: auto;
 }
 
 /* 覆盖局部样式，使滚动条颜色在深色背景下协调 */
