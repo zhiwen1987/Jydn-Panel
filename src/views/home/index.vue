@@ -547,11 +547,11 @@ function getGroupDotTop(groupId?: number) {
                     <!-- 悬浮操作按钮 -->
                     <div v-if="!itemGroup.sortStatus" class="opacity-0 group-hover:opacity-100 flex items-center gap-2 transition-opacity ml-2">
                       <div 
-                        class="p-1 rounded bg-black/40 hover:bg-black/60 cursor-pointer flex items-center justify-center text-white"
+                        class="p-1 rounded bg-black/20 hover:bg-black/40 cursor-pointer flex items-center justify-center text-white"
                         title="修改"
                         @click.stop="quickEditWebpage(item)"
                       >
-                        <SvgIcon class="text-sm" icon="material-symbols:edit" />
+                        <SvgIcon class="text-sm" icon="material-symbols:edit-square-outline" />
                       </div>
                       <div 
                         class="p-1 rounded bg-red-500/80 hover:bg-red-500 cursor-pointer flex items-center justify-center text-white"
