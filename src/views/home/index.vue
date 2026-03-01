@@ -1135,6 +1135,12 @@ html {
   .icon-info-box > div,
   .icon-small-box > div {
     padding: 2px !important;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  .icon-info-box,
+  .icon-small-box {
+    overflow-x: hidden;
   }
   .icon-info-box :deep(.icon),
   .icon-small-box :deep(.icon) {
@@ -1144,6 +1150,9 @@ html {
   .icon-info-box :deep(.text),
   .icon-small-box :deep(.text) {
     font-size: 8px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
