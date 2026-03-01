@@ -194,10 +194,14 @@ function handleRightMenuSelect(key: string | number) {
         positiveText: t('common.confirm'),
         negativeText: t('common.cancel'),
         onPositiveClick: () => {
-          deletes([currentRightSelectItem.value?.id as number]).then(({ code, msg }) => {
+          const itemId = currentRightSelectItem.value?.id as number
+          const groupId = currentRightSelectItem.value?.itemIconGroupId as number
+          deletes([itemId]).then(({ code, msg }) => {
             if (code === 0) {
               ms.success(t('common.deleteSuccess'))
-              getList()
+              removeItemLocal(itemId, groupId)
+              refreshFilteredView()
+              nextTick(() => recalcCatalogDots())
             }
             else {
               ms.error(`${t('common.deleteFail')}:${msg}`)
@@ -275,10 +279,15 @@ function quickEditWebpage(item: Panel.ItemInfo) {
 }
 
 function quickDeleteWebpage(item: Panel.ItemInfo) {
-  deletes([item.id as number]).then(({ code, msg }) => {
+  const itemId = item.id as number
+  const groupId = item.itemIconGroupId as number
+
+  deletes([itemId]).then(({ code, msg }) => {
     if (code === 0) {
       ms.success(t('common.deleteSuccess'))
-      getList()
+      removeItemLocal(itemId, groupId)
+      refreshFilteredView()
+      nextTick(() => recalcCatalogDots())
     } else {
       ms.error(`${t('common.deleteFail')}:${msg}`)
     }
@@ -333,8 +342,53 @@ function onClickoutside() {
   dropdownShow.value = false
 }
 
+function upsertItemLocal(saved: any) {
+  const groupId = saved?.itemIconGroupId as number
+  if (!groupId)
+    return
+
+  const group = items.value.find(g => (g.id as number) === groupId)
+  if (!group)
+    return
+
+  if (!group.items)
+    group.items = []
+
+  const idx = group.items.findIndex(it => (it.id as number) === (saved.id as number))
+  if (idx >= 0) {
+    group.items.splice(idx, 1, { ...group.items[idx], ...saved })
+  } else {
+    // 新建：按创建时间“新到旧”逻辑插入（置顶在前）
+    group.items.unshift(saved)
+  }
+
+  // 仅网页分组需要置顶/时间排序；网站图标保持原逻辑
+  if (currentGroupType.value === 'webpage')
+    sortWebpageItemsInGroup(group)
+}
+
+function removeItemLocal(itemId: number, groupId: number) {
+  const group = items.value.find(g => (g.id as number) === groupId)
+  if (!group || !group.items)
+    return
+
+  const idx = group.items.findIndex(it => (it.id as number) === itemId)
+  if (idx >= 0)
+    group.items.splice(idx, 1)
+}
+
+function refreshFilteredView() {
+  if (currentSearchKeyword.value)
+    itemFrontEndSearch(currentSearchKeyword.value)
+  else
+    filterItems.value = items.value
+}
+
 function handleEditSuccess(item: Panel.ItemInfo) {
-  getList()
+  // 新建/修改成功：只本地更新对应分组列表，不全量 getList
+  upsertItemLocal(item as any)
+  refreshFilteredView()
+  nextTick(() => recalcCatalogDots())
 }
 
 function handleChangeNetwork(mode: PanelStateNetworkModeEnum) {
