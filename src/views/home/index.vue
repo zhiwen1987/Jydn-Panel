@@ -668,10 +668,25 @@ function getGroupDotTop(groupId?: number) {
           </div>
           <div
             v-if="panelState.panelConfig.searchBoxShow"
-            class="flex mt-[20px] mx-auto sm:w-full lg:w-[80%]"
+            class="flex items-center mt-[20px] mx-auto sm:w-full lg:w-[80%]"
             :style="{ marginBottom: `${panelState.panelConfig.searchToBelowGapPx ?? 30}px` }"
           >
-            <SearchBox @itemSearch="itemFrontEndSearch" />
+            <div class="flex-1">
+              <SearchBox @itemSearch="itemFrontEndSearch" />
+            </div>
+            <!-- 移动端：登录按钮 -->
+            <div v-if="isMobile" class="ml-2">
+              <NButton
+                circle
+                size="small"
+                color="#2a2a2a6b"
+                @click="router.push('/login')"
+              >
+                <template #icon>
+                  <SvgIcon class="text-white" icon="material-symbols:account-circle" />
+                </template>
+              </NButton>
+            </div>
           </div>
         </div>
 
