@@ -113,6 +113,20 @@ func (a *ItemIcon) Edit(c *gin.Context) {
 
 	req.UserId = userInfo.ID
 
+	// 增加重复性检查
+	if req.Url != "" {
+		var count int64
+		checkDb := global.Db.Model(&models.ItemIcon{}).Where("url = ? AND user_id = ?", req.Url, req.UserId)
+		if req.ID != 0 {
+			checkDb = checkDb.Where("id != ?", req.ID)
+		}
+		checkDb.Count(&count)
+		if count > 0 {
+			apiReturn.Error(c, "已有重复链接，请修改！")
+			return
+		}
+	}
+
 	// json转字符串
 	if j, err := json.Marshal(req.Icon); err == nil {
 		req.IconJson = string(j)
