@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import type { UploadFileInfo } from 'naive-ui'
-import { NAlert, NButton, NCheckbox, NCheckboxGroup, NDivider, NInput, NSpace, NUpload, useMessage } from 'naive-ui'
+import { NAlert, NButton, NCheckbox, NCheckboxGroup, NDivider, NInput, NRadio, NRadioGroup, NSpace, NUpload, useMessage } from 'naive-ui'
 import { RoundCardModal, SvgIcon } from '@/components/common'
 import type { IconGroup, ImportJsonResult } from '@/utils/jsonImportExport'
 import { ConfigVersionLowError, FormatError, exportJson, importJsonString } from '@/utils/jsonImportExport'
 import { get as getAbout } from '@/api/system/about'
-import { edit as addGroup, getList as getGroupList } from '@/api/panel/itemIconGroup'
-import { addMultiple as addMultipleIcons, getListByGroupId } from '@/api/panel/itemIcon'
+import { edit as addGroup, deletes as deleteGroups, getList as getGroupList } from '@/api/panel/itemIconGroup'
+import { addMultiple as addMultipleIcons, deletes as deleteIcons, getListByGroupId } from '@/api/panel/itemIcon'
 
 import { t } from '@/locales'
 
@@ -30,6 +30,7 @@ const importObj = ref<ImportJsonResult | null> (null)
 
 const importItems = ref<string[]>(['icons']) // 当前软件版本支持导入导出的项目
 const checkedItems = ref<string[]>(['icons']) // 当前准备导入的项目
+const importMode = ref<'append' | 'overwrite'>('append') // 导入模式：追加或覆盖
 
 // 导入图标
 async function importIcons(): Promise<string | null> {
@@ -38,6 +39,32 @@ async function importIcons(): Promise<string | null> {
 
   if (!groups)
     return null
+
+  // 覆盖模式：先删除现有数据
+  if (importMode.value === 'overwrite') {
+    console.log('overwrite mode: deleting existing data...')
+    const { code: listCode, data: listData } = await getGroupList<Common.ListResponse<ItemGroup[]>>()
+    if (listCode === 0 && listData && listData.list.length > 0) {
+      const groupIds: number[] = []
+      for (const g of listData.list) {
+        groupIds.push(g.id as number)
+      }
+      // 删除所有图标
+      for (const gid of groupIds) {
+        const iconRes = await getListByGroupId<Common.ListResponse<Panel.ItemInfo[]>>(gid)
+        if (iconRes.code === 0 && iconRes.data && iconRes.data.list) {
+          const iconIds = iconRes.data.list.map(i => i.id as number)
+          if (iconIds.length > 0) {
+            await deleteIcons(iconIds)
+          }
+        }
+      }
+      // 删除所有分组
+      if (groupIds.length > 0) {
+        await deleteGroups(groupIds)
+      }
+    }
+  }
 
   try {
     for (let i = 0; i < groups.length; i++) {
@@ -321,6 +348,18 @@ async function handleStartImport() {
       <NDivider title-placement="left">
         {{ $t('apps.exportImport.selectImportData') }}
       </NDivider>
+
+      <!-- 导入模式选择：追加或覆盖 -->
+      <NSpace justify="center" style="margin-top: 10px; margin-bottom: 10px;">
+        <NRadioGroup v-model:value="importMode">
+          <NRadio value="append">
+            追加（保留现有数据）
+          </NRadio>
+          <NRadio value="overwrite">
+            覆盖（清空现有数据）
+          </NRadio>
+        </NRadioGroup>
+      </NSpace>
 
       <NSpace justify="center" style="margin-top: 20px;">
         <NCheckboxGroup v-model:value="checkedItems">
