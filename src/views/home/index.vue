@@ -538,11 +538,11 @@ function getGroupDotTop(groupId?: number) {
                     :key="index"
                     class="group relative w-full py-2 px-3 mb-2 rounded-lg bg-black/20 text-white flex justify-between items-center hover:text-[#fef08a] transition-colors"
                     :class="itemGroup.sortStatus ? 'cursor-move' : 'cursor-pointer'"
-                    :title="item.description || item.title"
+                    :title="item.description"
                     @click="handleItemClick(itemGroupIndex, item)"
                     @contextmenu="(e) => handleContextMenu(e, itemGroupIndex, item)"
                   >
-                    <div class="truncate flex-1">{{ item.title }}</div>
+                    <div class="webpage-title flex-1" :title="item.title">{{ item.title }}</div>
                     
                     <!-- 悬浮操作按钮 -->
                     <div v-if="!itemGroup.sortStatus" class="opacity-0 group-hover:opacity-100 flex items-center gap-2 transition-opacity ml-2">
@@ -935,6 +935,17 @@ html {
 .catalog-dot:hover .catalog-label {
   opacity: 1;
   color: #fef08a;
+}
+
+.webpage-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  line-height: 1.5;
+  word-break: break-all;
 }
 
 :global(:root) {
