@@ -2,6 +2,11 @@
 import { VueDraggable } from 'vue-draggable-plus'
 import { NBackTop, NButton, NButtonGroup, NDropdown, NModal, NSkeleton, NSpin, NEllipsis, useDialog, useMessage } from 'naive-ui'
 import { computed, nextTick, onMounted, onUnmounted, ref, h } from 'vue'
+
+const isMobile = ref(false)
+function updateIsMobile() {
+  isMobile.value = window.innerWidth <= 500
+}
 import { AppIcon, AppStarter, EditItem } from './components'
 import { Clock, SearchBox, SystemMonitor } from '@/components/deskModule'
 import { SvgIcon, SvgIconOnline } from '@/components/common'
@@ -491,6 +496,9 @@ function getDropdownMenuOptions() {
 }
 
 onMounted(() => {
+  updateIsMobile()
+  window.addEventListener('resize', updateIsMobile)
+
   // 更新用户信息
   updateLocalUserInfo()
   getList()
@@ -507,6 +515,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', recalcCatalogDots)
+  window.removeEventListener('resize', updateIsMobile)
 })
 
 // 前端搜索过滤
@@ -919,7 +928,7 @@ function getGroupDotTop(groupId?: number) {
     />
 
     <!-- 悬浮按钮 -->
-    <div class="fixed-element" :style="fixedElementStyle">
+    <div v-if="!isMobile" class="fixed-element" :style="fixedElementStyle">
       <div class="fixed-tools-shell">
         <div class="fixed-tools-wrapper">
           <NButtonGroup vertical>
@@ -1106,6 +1115,18 @@ html {
 @media (max-width: 500px) {
   .icon-info-box{
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px; /* 移动端项目间距更紧凑 */
+  }
+  .icon-small-box{
+    gap: 12px; /* 移动端项目间距更紧凑 */
+  }
+
+  /* 移动端左侧目录不要贴着内容 */
+  .left-catalog {
+    left: 4px;
+  }
+  .p-2\.5 {
+    padding-left: 22px !important;
   }
 }
 

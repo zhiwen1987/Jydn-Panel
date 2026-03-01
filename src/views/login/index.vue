@@ -151,7 +151,15 @@ function handleChangeLanuage(value: Language) {
 
     .login-card {
         margin: 20px;
-        min-width:400px;
+        width: 100%;
+        max-width: 360px;
+        min-width: 0;
+    }
+
+    @media (min-width: 600px) {
+      .login-card {
+        max-width: 420px;
+      }
     }
 
   .login-title{
