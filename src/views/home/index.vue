@@ -165,12 +165,14 @@ function handleRightMenuSelect(key: string | number) {
       window.open(jumpUrl)
       break
     case 'copyUrl':
-      if (jumpUrl) {
-        navigator.clipboard.writeText(jumpUrl).then(() => {
-          ms.success('链接已复制')
-        }).catch(() => {
-          ms.error('复制失败')
-        })
+      if (currentRightSelectItem.value?.url) {
+        copyUrlToClipboard(currentRightSelectItem.value.url)
+      }
+      break
+    case 'copyLanUrl':
+    case 'copyWanUrl':
+      if (currentRightSelectItem.value?.lanUrl) {
+        copyUrlToClipboard(currentRightSelectItem.value.lanUrl)
       }
       break
     case 'openWanUrl':
@@ -223,6 +225,35 @@ function quickDeleteWebpage(item: Panel.ItemInfo) {
       ms.error(`${t('common.deleteFail')}:${msg}`)
     }
   })
+}
+
+function copyUrlToClipboard(url: string) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      ms.success('链接已复制成功！')
+    }).catch(() => {
+      fallbackCopy(url)
+    })
+  } else {
+    fallbackCopy(url)
+  }
+}
+
+function fallbackCopy(text: string) {
+  const textArea = document.createElement('textarea')
+  textArea.value = text
+  textArea.style.position = 'fixed'
+  textArea.style.top = '-9999px'
+  document.body.appendChild(textArea)
+  textArea.focus()
+  textArea.select()
+  try {
+    document.execCommand('copy')
+    ms.success('链接已复制成功！')
+  } catch (err) {
+    ms.error('复制失败，可能是浏览器限制')
+  }
+  document.body.removeChild(textArea)
 }
 
 function handleContextMenu(e: MouseEvent, itemGroupIndex: number, item: Panel.ItemInfo) {
@@ -289,97 +320,57 @@ function handleSaveSort(itemGroup: ItemGroup) {
 function getDropdownMenuOptions() {
   const dropdownMenuOptions: any[] = []
 
-  const copyUrl = (url?: string) => {
-    if (url) {
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(() => {
-          ms.success('链接已复制')
-          dropdownShow.value = false
-        }).catch(() => {
-          fallbackCopy(url)
-        })
-      } else {
-        fallbackCopy(url)
-      }
-    }
-  }
-
-  const fallbackCopy = (text: string) => {
-    const textArea = document.createElement('textarea')
-    textArea.value = text
-    textArea.style.position = 'fixed'
-    textArea.style.top = '-9999px'
-    document.body.appendChild(textArea)
-    textArea.focus()
-    textArea.select()
-    try {
-      document.execCommand('copy')
-      ms.success('链接已复制')
-      dropdownShow.value = false
-    } catch (err) {
-      ms.error('复制失败，可能是浏览器限制')
-    }
-    document.body.removeChild(textArea)
-  }
-
-  const renderCopyButton = (url?: string) => {
-    return h(
-      'div',
-      {
-        class: 'flex items-center justify-center p-1 rounded hover:bg-black/10 cursor-pointer w-[24px] h-[24px]',
-        title: '复制链接',
-        onMousedown: (e: MouseEvent) => {
-          // NDropdown 会在 click 时吃掉事件，用 mousedown 优先拦截并处理
-          e.preventDefault()
-          e.stopPropagation()
-          copyUrl(url)
-        }
-      },
-      [h(SvgIcon, { icon: 'ion-copy', style: 'font-size: 16px; color: #666;' })]
-    )
-  }
-
-  const renderLabelWithCopy = (label: string, url?: string, key?: string) => {
+  const renderIconLabel = (label: string, iconName: string) => {
     return h(
       'div', 
-      { 
-        class: 'flex items-center justify-between w-full min-w-[120px]',
-        onClick: (e: MouseEvent) => {
-          handleRightMenuSelect(key || '')
-        }
-      }, 
+      { class: 'flex items-center gap-2' }, 
       [
-        h('span', null, label),
-        url ? renderCopyButton(url) : null
+        h(SvgIcon, { icon: iconName, style: 'font-size: 16px;' }),
+        h('span', null, label)
       ]
     )
   }
 
   dropdownMenuOptions.push({
-    label: () => renderLabelWithCopy('打开链接', currentRightSelectItem.value?.url, 'newWindows'),
+    label: () => renderIconLabel('打开链接', 'ph:link-bold'),
     key: 'newWindows',
+  })
+
+  dropdownMenuOptions.push({
+    label: () => renderIconLabel('复制链接', 'ion-copy'),
+    key: 'copyUrl',
   })
 
   if (currentRightSelectItem.value?.lanUrl && panelState.networkMode === PanelStateNetworkModeEnum.wan) {
     dropdownMenuOptions.push({
-      label: () => renderLabelWithCopy('打开内网链接', currentRightSelectItem.value?.lanUrl, 'openLanUrl'),
+      label: () => renderIconLabel('打开内网链接', 'ph:link-bold'),
       key: 'openLanUrl',
+    })
+    
+    dropdownMenuOptions.push({
+      label: () => renderIconLabel('复制内网链接', 'ion-copy'),
+      key: 'copyLanUrl',
     })
   }
 
   if (currentRightSelectItem.value?.lanUrl && panelState.networkMode === PanelStateNetworkModeEnum.lan) {
     dropdownMenuOptions.push({
-      label: () => renderLabelWithCopy('打开外网链接', currentRightSelectItem.value?.lanUrl, 'openWanUrl'),
+      label: () => renderIconLabel('打开外网链接', 'ph:link-bold'),
       key: 'openWanUrl',
+    })
+
+    dropdownMenuOptions.push({
+      label: () => renderIconLabel('复制外网链接', 'ion-copy'),
+      key: 'copyWanUrl',
     })
   }
 
   if (authStore.visitMode === VisitMode.VISIT_MODE_LOGIN) {
     dropdownMenuOptions.push({
-      label: t('common.edit'),
+      label: () => renderIconLabel(t('common.edit'), 'basil:edit-solid'),
       key: 'edit',
     }, {
-      label: t('common.delete'),
+      label: () => renderIconLabel(t('common.delete'), 'material-symbols:delete'),
       key: 'delete',
     })
   }
