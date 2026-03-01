@@ -640,10 +640,10 @@ function getGroupDotTop(groupId?: number) {
                   <div
                     v-for="item, index in (itemGroup.items || [])"
                     :key="index"
-                    class="group relative w-full py-2 px-3 mb-2 rounded-lg text-white flex justify-between items-center hover:text-[#fef08a] transition-colors shrink-0"
+                    class="group relative w-full h-12 px-3 rounded-lg text-white flex justify-between items-center hover:text-[#fef08a] transition-colors shrink-0"
                     :class="[
                       itemGroup.sortStatus ? 'cursor-move' : 'cursor-pointer',
-                      item.pinned ? 'bg-[#3b82f6]/40' : 'bg-black/20'
+                      item.pinned ? 'text-sky-300 bg-black/20' : 'bg-black/20'
                     ]"
                     :title="item.description"
                     @click="handleItemClick(itemGroupIndex, item)"
@@ -669,7 +669,7 @@ function getGroupDotTop(groupId?: number) {
                         :title="item.pinned ? '取消置顶' : '置顶'"
                         @click.stop="quickTogglePinWebpage(item)"
                       >
-                        <SvgIcon class="text-sm" :icon="item.pinned ? 'ph:push-pin-slash-bold' : 'ph:push-pin-bold'" />
+                        <SvgIcon class="text-sm" :icon="item.pinned ? 'mdi:pin-off' : 'mdi:pin'" />
                       </div>
                       <div 
                         class="p-1 rounded bg-black/20 hover:bg-black/40 cursor-pointer flex items-center justify-center text-white"
@@ -1071,10 +1071,11 @@ html {
 
 .webpage-list-container {
   /* 固定最大高度以容纳约 10 行完整的网页条目，避免出现被截断半行的情况 */
-  max-height: 480px;
+  max-height: calc(3rem * 10);
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px; /* 防止滚动条紧贴文字 */
+  gap: 0.5rem; /* 对应原来的 mb-2 */
   display: flex;
   flex-direction: column;
 }

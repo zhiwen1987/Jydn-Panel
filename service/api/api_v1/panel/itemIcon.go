@@ -218,8 +218,8 @@ func (a *ItemIcon) GetListByGroupId(c *gin.Context) {
 	userInfo, _ := base.GetCurrentUserInfo(c)
 	itemIcons := []models.ItemIcon{}
 
-	// Pinned 置顶在前，然后 sort，然后最新创建的时间
-	if err := global.Db.Order("pinned DESC, sort ASC, created_at DESC").Find(&itemIcons, "item_icon_group_id = ? AND user_id=?", req.ItemIconGroupId, userInfo.ID).Error; err != nil {
+	// 默认排序：置顶在前，然后按创建时间从新到旧
+	if err := global.Db.Order("pinned DESC, created_at DESC").Find(&itemIcons, "item_icon_group_id = ? AND user_id=?", req.ItemIconGroupId, userInfo.ID).Error; err != nil {
 		apiReturn.ErrorDatabase(c, err.Error())
 		return
 	}
