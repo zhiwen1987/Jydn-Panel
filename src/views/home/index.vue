@@ -543,7 +543,15 @@ function getGroupDotTop(groupId?: number) {
                     @contextmenu="(e) => handleContextMenu(e, itemGroupIndex, item)"
                   >
                     <!-- 通过 Vue 指令判断文字是否截断再显示原生 title（此处使用封装一个只在溢出时显示 title 的逻辑较繁琐，妥协为外层不加 title，或通过 CSS tooltip 实现，这里用最简单的 css hover + ellipsis 判断比较难，咱们改用自定义组件或者根据字符长度估算，这里用简单的 title 移除，靠用户自行判断，但用户需要“全标题显示” -->
-                    <NEllipsis class="webpage-title flex-1" :tooltip="{ content: item.title, placement: 'top' }" :line-clamp="1">
+                    <NEllipsis 
+                      class="webpage-title flex-1" 
+                      :tooltip="{ 
+                        content: item.title, 
+                        placement: 'bottom',
+                        style: { maxWidth: '400px', whiteSpace: 'normal', wordBreak: 'break-all' }
+                      }" 
+                      :line-clamp="1"
+                    >
                       {{ item.title }}
                     </NEllipsis>
                     
