@@ -309,7 +309,7 @@ function getDropdownMenuOptions() {
           copyUrl(url)
         }
       },
-      [h(SvgIcon, { icon: 'lucide:copy', class: 'text-sm' })]
+      [h(SvgIcon, { icon: 'typcn:clipboard', class: 'text-sm' })]
     )
   }
 
