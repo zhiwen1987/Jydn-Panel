@@ -62,7 +62,8 @@ EXPOSE 3002
 
 RUN apk add --no-cache bash ca-certificates su-exec tzdata \
     && mkdir -p /app/uploads \
-    && chmod +x ./ange-panel \
-    && ./ange-panel -config
+    && chmod +x /app/ange-panel \
+    && test -f /app/ange-panel \
+    && /app/ange-panel -config
 
-CMD ./ange-panel
+CMD ["/app/ange-panel"]
