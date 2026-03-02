@@ -34,8 +34,10 @@ coverage
 .history
 service_node
 
-bindata.go
-service/assets/bindata.go
+# bindata.go
+# NOTE: service/assets/bindata.go is required for CI builds (generated assets package).
+# Keep it tracked to avoid requiring go-bindata in GitHub Actions.
+# service/assets/bindata.go
 service/conf
 service/lang
 service/database
