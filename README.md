@@ -112,6 +112,18 @@ A perfect website navigation + webpage bookmarks panel.
 
 
 
+## 一键安装（systemd / 二进制）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/liandu2024/AnGe-Panel/main/scripts/install.sh | sudo bash -s -- --port 3003
+```
+
+- 默认安装到：`/opt/ange-panel`
+- 服务名：`ange-panel.service`
+- 查看状态：`systemctl status ange-panel --no-pager`
+
+> 如需指定版本：加 `--version v0.1.7`
+
 ## 🐳 Docker（推荐）
 
 本仓库已内置 `Dockerfile`，并提供 GitHub Actions 自动构建镜像（发布到 GHCR）：
