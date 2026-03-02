@@ -49,10 +49,19 @@ async function importIcons(): Promise<string | null> {
   // 覆盖模式：先删除现有数据
   if (importMode.value === 'overwrite') {
     console.log('overwrite mode: deleting existing data...')
-    const { code: listCode, data: listData } = await getGroupList<Common.ListResponse<ItemGroup[]>>()
-    if (listCode === 0 && listData && listData.list.length > 0) {
+    
+    // 获取网站导航数据
+    const { code: code1, data: data1 } = await getGroupList<Common.ListResponse<ItemGroup[]>>('website')
+    // 获取网页收藏数据
+    const { code: code2, data: data2 } = await getGroupList<Common.ListResponse<ItemGroup[]>>('webpage')
+
+    const allExistingGroups = []
+    if (code1 === 0 && data1?.list) allExistingGroups.push(...data1.list)
+    if (code2 === 0 && data2?.list) allExistingGroups.push(...data2.list)
+
+    if (allExistingGroups.length > 0) {
       const groupIds: number[] = []
-      for (const g of listData.list) {
+      for (const g of allExistingGroups) {
         groupIds.push(g.id as number)
       }
       // 删除所有图标
@@ -80,6 +89,7 @@ async function importIcons(): Promise<string | null> {
       const createGroupResponse = await addGroup<Panel.ItemIconGroup>({
         title: element.title,
         sort: element.sort,
+        groupType: element.groupType || 'website',
       })
 
       if (createGroupResponse.code === 0) {
@@ -134,15 +144,26 @@ async function importIcons(): Promise<string | null> {
 async function exportIcons(): Promise<IconGroup[]> {
   const iconGroups: IconGroup[] = []
 
-  // 获取组数据
-  const { code, data } = await getGroupList<Common.ListResponse<ItemGroup[]>>()
+  // 获取网站导航数据
+  const { code: code1, data: data1 } = await getGroupList<Common.ListResponse<ItemGroup[]>>('website')
+  // 获取网页收藏数据
+  const { code: code2, data: data2 } = await getGroupList<Common.ListResponse<ItemGroup[]>>('webpage')
 
-  if (code === 0) {
+  const allGroups = []
+  if (code1 === 0 && data1?.list) {
+    allGroups.push(...data1.list.map(g => ({ ...g, groupType: 'website' as const })))
+  }
+  if (code2 === 0 && data2?.list) {
+    allGroups.push(...data2.list.map(g => ({ ...g, groupType: 'webpage' as const })))
+  }
+
+  if (allGroups.length > 0) {
     // 使用 Promise.all 等待所有异步操作完成
-    await Promise.all(data.list.map(async (element) => {
+    await Promise.all(allGroups.map(async (element) => {
       const group: IconGroup = {
         title: element.title as string,
         sort: element.sort as 0,
+        groupType: element.groupType,
         children: [],
       }
 

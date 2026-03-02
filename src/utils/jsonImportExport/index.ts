@@ -44,6 +44,7 @@ export interface Icon {
 export interface IconGroup {
   title: string
   sort: number
+  groupType?: 'website' | 'webpage'
   children: Icon[]
 }
 
