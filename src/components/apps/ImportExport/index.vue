@@ -354,54 +354,58 @@ async function handleStartImport() {
       <p>{{ $t('apps.exportImport.tip') }}</p>
     </NAlert>
     <div class="flex justify-center m-[50px]">
-      <div class="flex flex-col md:flex-row gap-4 w-full max-w-[900px] px-4">
-        <!-- 追加导入：支持拖拽上传 -->
-        <NUpload
-          accept=".sun-panel.json,.sunpanel.json"
-          directory-dnd
-          :default-upload="false"
-          :show-file-list="false"
-          class="flex-1"
-          @change="(opts: any) => handleFileChangeWithMode(opts, 'append')"
-        >
-          <NUploadDragger>
-            <div class="text-center">
-              <div class="font-medium mb-2">拖拽配置文件到这里</div>
-              <div class="text-sm opacity-70 mb-3">追加导入（保留现有数据）</div>
-              <NButton type="success" size="large" :loading="uploadLoading">
-                <template #icon>
-                  <SvgIcon icon="fa6:solid-file-import" />
-                </template>
-                选择文件并追加导入
-              </NButton>
-            </div>
-          </NUploadDragger>
-        </NUpload>
+      <div class="w-full max-w-[900px] px-4">
+        <!-- 上面一行：两个导入拖拽框（允许换行，避免横向滚动条） -->
+        <div class="flex flex-col md:flex-row flex-wrap gap-4 w-full">
+          <!-- 追加导入：支持拖拽上传 -->
+          <NUpload
+            accept=".sun-panel.json,.sunpanel.json"
+            directory-dnd
+            :default-upload="false"
+            :show-file-list="false"
+            class="flex-1 min-w-0"
+            @change="(opts: any) => handleFileChangeWithMode(opts, 'append')"
+          >
+            <NUploadDragger>
+              <div class="text-center">
+                <div class="font-medium mb-2">拖拽配置文件到这里</div>
+                <div class="text-sm opacity-70 mb-3">追加导入（保留现有数据）</div>
+                <NButton type="success" size="large" :loading="uploadLoading">
+                  <template #icon>
+                    <SvgIcon icon="fa6:solid-file-import" />
+                  </template>
+                  选择文件并追加导入
+                </NButton>
+              </div>
+            </NUploadDragger>
+          </NUpload>
 
-        <!-- 覆盖导入：支持拖拽上传 -->
-        <NUpload
-          accept=".sun-panel.json,.sunpanel.json"
-          directory-dnd
-          :default-upload="false"
-          :show-file-list="false"
-          class="flex-1"
-          @change="(opts: any) => handleFileChangeWithMode(opts, 'overwrite')"
-        >
-          <NUploadDragger>
-            <div class="text-center">
-              <div class="font-medium mb-2">拖拽配置文件到这里</div>
-              <div class="text-sm opacity-70 mb-3">覆盖导入（清空后导入）</div>
-              <NButton type="warning" size="large" :loading="uploadLoading">
-                <template #icon>
-                  <SvgIcon icon="fa6:solid-file-import" />
-                </template>
-                选择文件并覆盖导入
-              </NButton>
-            </div>
-          </NUploadDragger>
-        </NUpload>
+          <!-- 覆盖导入：支持拖拽上传 -->
+          <NUpload
+            accept=".sun-panel.json,.sunpanel.json"
+            directory-dnd
+            :default-upload="false"
+            :show-file-list="false"
+            class="flex-1 min-w-0"
+            @change="(opts: any) => handleFileChangeWithMode(opts, 'overwrite')"
+          >
+            <NUploadDragger>
+              <div class="text-center">
+                <div class="font-medium mb-2">拖拽配置文件到这里</div>
+                <div class="text-sm opacity-70 mb-3">覆盖导入（清空后导入）</div>
+                <NButton type="warning" size="large" :loading="uploadLoading">
+                  <template #icon>
+                    <SvgIcon icon="fa6:solid-file-import" />
+                  </template>
+                  选择文件并覆盖导入
+                </NButton>
+              </div>
+            </NUploadDragger>
+          </NUpload>
+        </div>
 
-        <div class="self-center">
+        <!-- 下面一行：导出配置单独一行，避免挤出横向滚动条 -->
+        <div class="flex justify-center mt-4">
           <NButton type="info" size="large" @click="exportRoundModalShow = !exportRoundModalShow">
             <template #icon>
               <SvgIcon icon="fa6:solid-file-export" />
