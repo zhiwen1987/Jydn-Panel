@@ -1,0 +1,17 @@
+[Unit]
+Description=AnGe-Panel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ange-panel
+Group=ange-panel
+WorkingDirectory=/opt/ange-panel
+ExecStart=/opt/ange-panel/ange-panel
+Restart=always
+RestartSec=2
+LimitNOFILE=1048576
+
+[Install]
+WantedBy=multi-user.target

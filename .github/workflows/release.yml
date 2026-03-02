@@ -1,0 +1,76 @@
+name: Release (Linux binaries)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}
+
+env:
+  APP_NAME: ange-panel
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install frontend deps
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Copy web assets into backend
+        run: |
+          rm -rf service/web
+          mkdir -p service/web
+          cp -r dist/* service/web/
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: service/go.sum
+
+      - name: Build backend (linux/${{ matrix.arch }})
+        working-directory: service
+        env:
+          GOOS: linux
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 0
+        run: |
+          go build -trimpath -ldflags "-s -w" -o "../${{ env.APP_NAME }}"
+
+      - name: Package
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          OUT_DIR="${{ env.APP_NAME }}_${VERSION}_linux_${{ matrix.arch }}"
+          mkdir -p "$OUT_DIR"
+          cp "${{ env.APP_NAME }}" "$OUT_DIR/${{ env.APP_NAME }}"
+          cp -r service/conf "$OUT_DIR/conf"
+          cp -r service/web "$OUT_DIR/web"
+          tar -czf "${OUT_DIR}.tar.gz" "$OUT_DIR"
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            *.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
