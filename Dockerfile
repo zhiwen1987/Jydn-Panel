@@ -39,7 +39,6 @@ COPY ./models ./models
 COPY ./router ./router
 COPY ./runtime ./runtime
 COPY ./structs ./structs
-COPY ./uploads ./uploads
 
 # 中国国内源
 # RUN sed -i "s@dl-cdn.alpinelinux.org@mirrors.aliyun.com@g" /etc/apk/repositories \
@@ -66,6 +65,7 @@ COPY --from=server_image /build/ange-panel /app/ange-panel
 EXPOSE 3002
 
 RUN apk add --no-cache bash ca-certificates su-exec tzdata \
+    && mkdir -p /app/uploads \
     && chmod +x ./ange-panel \
     && ./ange-panel -config
 
