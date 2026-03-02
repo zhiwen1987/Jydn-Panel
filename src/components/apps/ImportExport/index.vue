@@ -42,13 +42,28 @@ function handleFileChangeWithMode(options: { file: UploadFileInfo; fileList: Arr
 async function importIcons(): Promise<string | null> {
   const groups = importObj.value?.geticons()
   const batchSize = 50
+  let tempGroupId: number | null = null
 
   if (!groups)
     return null
 
   // 覆盖模式：先删除现有数据
+  // 注意：后端可能强制“至少保留一个分组”，会导致删除最后一个分组失败（你看到的“请至少保留一个”就是这个）。
+  // 所以这里先创建一个临时占位分组，确保删除过程不被“最后一个”规则卡住；导入完成后再删除该临时分组。
   if (importMode.value === 'overwrite') {
     console.log('overwrite mode: deleting existing data...')
+
+    try {
+      const tempRes = await addGroup<Panel.ItemIconGroup>({
+        title: '__IMPORT_TEMP__',
+        sort: 999999,
+        groupType: 'website',
+      })
+      if (tempRes.code === 0 && tempRes.data?.id)
+        tempGroupId = tempRes.data.id as number
+    } catch (e) {
+      // ignore
+    }
 
     // 有些后端实现对“批量/顺序删除”可能存在偶发漏删（尤其是最后一个分组）。
     // 这里做 3 轮兜底：每轮都重新拉取当前 group 列表并删除，直到为空或达到上限。
@@ -63,6 +78,8 @@ async function importIcons(): Promise<string | null> {
       if (code2 === 0 && data2?.list) allExistingGroups.push(...data2.list)
 
       const groupIds = allExistingGroups
+        // 不删除临时占位分组
+        .filter(g => (g.title || '') !== '__IMPORT_TEMP__')
         .map(g => Number(g.id))
         .filter(id => Number.isFinite(id) && id > 0)
 
@@ -149,6 +166,13 @@ async function importIcons(): Promise<string | null> {
       else {
         return createGroupResponse.msg
       }
+    }
+
+    // 覆盖模式：导入完成后删除临时占位分组
+    if (importMode.value === 'overwrite' && tempGroupId) {
+      const res: any = await deleteGroups([tempGroupId])
+      if (res?.code !== 0)
+        console.error('delete temp group failed', tempGroupId, res?.msg)
     }
 
     return null
