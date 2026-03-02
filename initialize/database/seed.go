@@ -49,17 +49,41 @@ func copyDir(src, dst string) error {
 	})
 }
 
-// EnsureSeedUploads copies ./seed/uploads to ./uploads if uploads does not exist.
-// This is safe (won't overwrite existing uploads).
+// EnsureSeedUploads copies ./seed/uploads to ./uploads when uploads is missing OR effectively empty.
+// We treat a directory with only ".gitkeep" as empty. This avoids a common pitfall where
+// systemd ExecStartPre creates uploads/ and prevents seeding.
 func EnsureSeedUploads() {
-	if ok, _ := cmn.PathExists("uploads"); ok {
-		return
-	}
 	seed := filepath.Join("seed", "uploads")
 	if ok, _ := cmn.PathExists(seed); !ok {
 		return
 	}
-	if err := copyDir(seed, "uploads"); err != nil {
-		log.Println("seed uploads copy failed:", err)
+
+	// If uploads doesn't exist, seed it.
+	if ok, _ := cmn.PathExists("uploads"); !ok {
+		if err := copyDir(seed, "uploads"); err != nil {
+			log.Println("seed uploads copy failed:", err)
+		}
+		return
+	}
+
+	// uploads exists: if it's empty (or only .gitkeep), seed it.
+	entries, err := os.ReadDir("uploads")
+	if err != nil {
+		return
+	}
+	meaningful := 0
+	for _, e := range entries {
+		name := e.Name()
+		if name == ".gitkeep" {
+			continue
+		}
+		meaningful++
+		break
+	}
+	if meaningful == 0 {
+		// Copy without deleting; just fill in.
+		if err := copyDir(seed, "uploads"); err != nil {
+			log.Println("seed uploads copy failed:", err)
+		}
 	}
 }
