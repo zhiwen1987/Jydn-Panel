@@ -49,40 +49,55 @@ async function importIcons(): Promise<string | null> {
   // 覆盖模式：先删除现有数据
   if (importMode.value === 'overwrite') {
     console.log('overwrite mode: deleting existing data...')
-    
-    // 获取网站导航数据
-    const { code: code1, data: data1 } = await getGroupList<Common.ListResponse<ItemGroup[]>>('website')
-    // 获取网页收藏数据
-    const { code: code2, data: data2 } = await getGroupList<Common.ListResponse<ItemGroup[]>>('webpage')
 
-    const allExistingGroups = []
-    if (code1 === 0 && data1?.list) allExistingGroups.push(...data1.list)
-    if (code2 === 0 && data2?.list) allExistingGroups.push(...data2.list)
+    // 有些后端实现对“批量/顺序删除”可能存在偶发漏删（尤其是最后一个分组）。
+    // 这里做 3 轮兜底：每轮都重新拉取当前 group 列表并删除，直到为空或达到上限。
+    async function deleteAllGroupsOnce() {
+      // 获取网站导航数据
+      const { code: code1, data: data1 } = await getGroupList<Common.ListResponse<ItemGroup[]>>('website')
+      // 获取网页收藏数据
+      const { code: code2, data: data2 } = await getGroupList<Common.ListResponse<ItemGroup[]>>('webpage')
 
-    if (allExistingGroups.length > 0) {
-      const groupIds: number[] = []
-      for (const g of allExistingGroups) {
-        groupIds.push(g.id as number)
-      }
+      const allExistingGroups: ItemGroup[] = []
+      if (code1 === 0 && data1?.list) allExistingGroups.push(...data1.list)
+      if (code2 === 0 && data2?.list) allExistingGroups.push(...data2.list)
+
+      const groupIds = allExistingGroups
+        .map(g => Number(g.id))
+        .filter(id => Number.isFinite(id) && id > 0)
+
+      if (groupIds.length === 0)
+        return 0
+
       // 删除所有图标
       for (const gid of groupIds) {
         const iconRes = await getListByGroupId<Common.ListResponse<Panel.ItemInfo[]>>(gid)
-        if (iconRes.code === 0 && iconRes.data && iconRes.data.list) {
-          const iconIds = iconRes.data.list.map(i => i.id as number)
+        if (iconRes.code === 0 && iconRes.data?.list) {
+          const iconIds = iconRes.data.list
+            .map(i => Number(i.id))
+            .filter(id => Number.isFinite(id) && id > 0)
           if (iconIds.length > 0) {
             await deleteIcons(iconIds)
           }
         }
       }
+
       // 删除所有分组（逐个删除，避免后端对批量 ids 有限制）
-      if (groupIds.length > 0) {
-        for (const gid of groupIds) {
-          const res: any = await deleteGroups([gid])
-          if (res?.code !== 0) {
-            console.error('delete group failed', gid, res?.msg)
-          }
+      for (const gid of groupIds) {
+        const res: any = await deleteGroups([gid])
+        if (res?.code !== 0) {
+          console.error('delete group failed', gid, res?.msg)
         }
       }
+
+      return groupIds.length
+    }
+
+    for (let round = 1; round <= 3; round++) {
+      const deletedCount = await deleteAllGroupsOnce()
+      console.log(`overwrite mode: delete round ${round}, groups=${deletedCount}`)
+      if (deletedCount === 0)
+        break
     }
   }
 
