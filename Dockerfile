@@ -1,22 +1,18 @@
 # build frontend
-FROM node AS web_image
+FROM node:20-alpine AS web_image
 
 # 华为源
 # RUN npm config set registry https://repo.huaweicloud.com/repository/npm/
 
-RUN npm install pnpm -g
-
 WORKDIR /build
 
-COPY ./package.json /build
+COPY ./package.json ./package-lock.json ./
 
-COPY ./pnpm-lock.yaml /build
+RUN npm ci
 
-RUN pnpm install
+COPY . .
 
-COPY . /build
-
-RUN pnpm run build
+RUN npm run build
 
 # build backend
 # 最新alpine3.19导致sqlite3编译失败(https://github.com/mattn/go-sqlite3/issues/1164，
