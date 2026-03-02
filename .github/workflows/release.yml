@@ -56,8 +56,16 @@ jobs:
           CGO_ENABLED: 0
           GO111MODULE: on
         run: |
-          go env
+          echo "PWD=$(pwd)"
+          ls -la
+          echo "---- go env (key) ----"
+          go env GOMOD GO111MODULE GOPATH GOROOT
+          echo "---- go mod ----"
+          cat go.mod
           go mod download
+          echo "---- go list ----"
+          go list ./... >/dev/null
+          echo "---- go build ----"
           go build -mod=mod -trimpath -ldflags "-s -w" -o "../${{ env.APP_NAME }}" ./main.go
 
       - name: Package
