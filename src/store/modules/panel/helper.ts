@@ -3,7 +3,8 @@ import { PanelPanelConfigStyleEnum, PanelStateNetworkModeEnum } from '@/enums'
 import defaultBackground from '@/assets/defaultBackground.webp'
 const LOCAL_NAME = 'panelStorage'
 
-const defaultFooterHtml = '<div class="flex justify-center text-slate-300" style="margin-top:100px">Powered By <a href="https://github.com/hslr-s/sun-panel" target="_blank" class="ml-[5px]">Sun-Panel</a></div>'
+// Default footer is empty (no branding) unless user sets it.
+const defaultFooterHtml = ''
 
 export function defaultStatePanelConfig(): Panel.panelConfig {
   return {
@@ -14,7 +15,8 @@ export function defaultStatePanelConfig(): Panel.panelConfig {
     iconTextColor: '#ffffff',
     iconTextInfoHideDescription: false,
     iconTextIconHideTitle: false,
-    logoText: 'Sun-Panel',
+    // Empty by default (hide header title unless user enables it)
+    logoText: '',
     logoImageSrc: '',
     topHeaderShow: false,
     clockShowSecond: false,
