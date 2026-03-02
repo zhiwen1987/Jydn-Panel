@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import type { UploadFileInfo } from 'naive-ui'
-import { NAlert, NButton, NCheckbox, NCheckboxGroup, NDivider, NInput, NSpace, NUpload, useMessage } from 'naive-ui'
+import { NAlert, NButton, NCheckbox, NCheckboxGroup, NDivider, NInput, NSpace, NUpload, NUploadDragger, useMessage } from 'naive-ui'
 import { RoundCardModal, SvgIcon } from '@/components/common'
 import type { IconGroup, ImportJsonResult } from '@/utils/jsonImportExport'
 import { ConfigVersionLowError, FormatError, exportJson, importJsonString } from '@/utils/jsonImportExport'
@@ -354,47 +354,61 @@ async function handleStartImport() {
       <p>{{ $t('apps.exportImport.tip') }}</p>
     </NAlert>
     <div class="flex justify-center m-[50px]">
-      <!-- 追加导入按钮 -->
-      <div class="m-[10px]">
+      <div class="flex flex-col md:flex-row gap-4 w-full max-w-[900px] px-4">
+        <!-- 追加导入：支持拖拽上传 -->
         <NUpload
           accept=".sun-panel.json,.sunpanel.json"
           directory-dnd
           :default-upload="false"
           :show-file-list="false"
+          class="flex-1"
           @change="(opts: any) => handleFileChangeWithMode(opts, 'append')"
         >
-          <NButton type="success" size="large" :loading="uploadLoading">
-            <template #icon>
-              <SvgIcon icon="fa6:solid-file-import" />
-            </template>
-            追加导入
-          </NButton>
+          <NUploadDragger>
+            <div class="text-center">
+              <div class="font-medium mb-2">拖拽配置文件到这里</div>
+              <div class="text-sm opacity-70 mb-3">追加导入（保留现有数据）</div>
+              <NButton type="success" size="large" :loading="uploadLoading">
+                <template #icon>
+                  <SvgIcon icon="fa6:solid-file-import" />
+                </template>
+                选择文件并追加导入
+              </NButton>
+            </div>
+          </NUploadDragger>
         </NUpload>
-      </div>
-      <!-- 覆盖导入按钮 -->
-      <div class="m-[10px]">
+
+        <!-- 覆盖导入：支持拖拽上传 -->
         <NUpload
           accept=".sun-panel.json,.sunpanel.json"
           directory-dnd
           :default-upload="false"
           :show-file-list="false"
+          class="flex-1"
           @change="(opts: any) => handleFileChangeWithMode(opts, 'overwrite')"
         >
-          <NButton type="warning" size="large" :loading="uploadLoading">
-            <template #icon>
-              <SvgIcon icon="fa6:solid-file-import" />
-            </template>
-            覆盖导入
-          </NButton>
+          <NUploadDragger>
+            <div class="text-center">
+              <div class="font-medium mb-2">拖拽配置文件到这里</div>
+              <div class="text-sm opacity-70 mb-3">覆盖导入（清空后导入）</div>
+              <NButton type="warning" size="large" :loading="uploadLoading">
+                <template #icon>
+                  <SvgIcon icon="fa6:solid-file-import" />
+                </template>
+                选择文件并覆盖导入
+              </NButton>
+            </div>
+          </NUploadDragger>
         </NUpload>
-      </div>
-      <div class="m-[10px]">
-        <NButton type="info" size="large" @click="exportRoundModalShow = !exportRoundModalShow">
-          <template #icon>
-            <SvgIcon icon="fa6:solid-file-export" />
-          </template>
-          {{ $t('apps.exportImport.export') }}
-        </NButton>
+
+        <div class="self-center">
+          <NButton type="info" size="large" @click="exportRoundModalShow = !exportRoundModalShow">
+            <template #icon>
+              <SvgIcon icon="fa6:solid-file-export" />
+            </template>
+            {{ $t('apps.exportImport.export') }}
+          </NButton>
+        </div>
       </div>
     </div>
 
