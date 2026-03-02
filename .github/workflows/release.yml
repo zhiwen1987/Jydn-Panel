@@ -54,8 +54,11 @@ jobs:
           GOOS: linux
           GOARCH: ${{ matrix.arch }}
           CGO_ENABLED: 0
+          GO111MODULE: on
         run: |
-          go build -trimpath -ldflags "-s -w" -o "../${{ env.APP_NAME }}"
+          go env
+          go mod download
+          go build -mod=mod -trimpath -ldflags "-s -w" -o "../${{ env.APP_NAME }}" ./main.go
 
       - name: Package
         run: |
