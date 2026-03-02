@@ -44,3 +44,9 @@ service/database
 service/web
 service/uploads
 service/plugins
+
+# local temp
+_tmp_move/
+web/
+service/database/
+service/web/
