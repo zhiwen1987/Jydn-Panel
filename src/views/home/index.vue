@@ -78,6 +78,7 @@ const fixedElementStyle = computed(() => {
   // 说明：原先内容区用 marginTop(%) + paddingTop(px) 控制顶部留白，这里用 vh + px 近似匹配视觉预期
   const marginTop = Number(panelState.panelConfig.marginTop ?? 0)
   const paddingTop = Number(panelState.panelConfig.paddingTop ?? 0)
+  // marginTop 对应设置里的百分比单位，所以这里用 vh 作为单位处理。再加上 paddingTop (px)
   const topOffset = `calc(${marginTop}vh + ${paddingTop}px + 12px)`
 
   switch (pos) {

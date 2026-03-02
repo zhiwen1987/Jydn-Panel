@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import type { UploadFileInfo } from 'naive-ui'
-import { NAlert, NButton, NCheckbox, NCheckboxGroup, NDivider, NInput, NRadio, NRadioGroup, NSpace, NUpload, useMessage } from 'naive-ui'
+import { NAlert, NButton, NCheckbox, NCheckboxGroup, NDivider, NInput, NSpace, NUpload, useMessage } from 'naive-ui'
 import { RoundCardModal, SvgIcon } from '@/components/common'
 import type { IconGroup, ImportJsonResult } from '@/utils/jsonImportExport'
 import { ConfigVersionLowError, FormatError, exportJson, importJsonString } from '@/utils/jsonImportExport'
@@ -31,6 +31,12 @@ const importObj = ref<ImportJsonResult | null> (null)
 const importItems = ref<string[]>(['icons']) // 当前软件版本支持导入导出的项目
 const checkedItems = ref<string[]>(['icons']) // 当前准备导入的项目
 const importMode = ref<'append' | 'overwrite'>('append') // 导入模式：追加或覆盖
+
+// 处理文件选择，根据当前模式导入
+function handleFileChangeWithMode(options: { file: UploadFileInfo; fileList: Array<UploadFileInfo> }, mode: 'append' | 'overwrite') {
+  importMode.value = mode
+  handleFileChange(options)
+}
 
 // 导入图标
 async function importIcons(): Promise<string | null> {
@@ -281,19 +287,37 @@ async function handleStartImport() {
       <p>{{ $t('apps.exportImport.tip') }}</p>
     </NAlert>
     <div class="flex justify-center m-[50px]">
+      <!-- 追加导入按钮 -->
       <div class="m-[10px]">
         <NUpload
           accept=".sun-panel.json,.sunpanel.json"
           directory-dnd
           :default-upload="false"
           :show-file-list="false"
-          @change="handleFileChange"
+          @change="(opts: any) => handleFileChangeWithMode(opts, 'append')"
         >
-          <NButton type="info" size="large" :loading="uploadLoading">
+          <NButton type="success" size="large" :loading="uploadLoading">
             <template #icon>
               <SvgIcon icon="fa6:solid-file-import" />
             </template>
-            {{ $t('apps.exportImport.import') }}
+            追加导入
+          </NButton>
+        </NUpload>
+      </div>
+      <!-- 覆盖导入按钮 -->
+      <div class="m-[10px]">
+        <NUpload
+          accept=".sun-panel.json,.sunpanel.json"
+          directory-dnd
+          :default-upload="false"
+          :show-file-list="false"
+          @change="(opts: any) => handleFileChangeWithMode(opts, 'overwrite')"
+        >
+          <NButton type="warning" size="large" :loading="uploadLoading">
+            <template #icon>
+              <SvgIcon icon="fa6:solid-file-import" />
+            </template>
+            覆盖导入
           </NButton>
         </NUpload>
       </div>
@@ -349,17 +373,13 @@ async function handleStartImport() {
         {{ $t('apps.exportImport.selectImportData') }}
       </NDivider>
 
-      <!-- 导入模式选择：追加或覆盖 -->
-      <NSpace justify="center" style="margin-top: 10px; margin-bottom: 10px;">
-        <NRadioGroup v-model:value="importMode">
-          <NRadio value="append">
-            追加（保留现有数据）
-          </NRadio>
-          <NRadio value="overwrite">
-            覆盖（清空现有数据）
-          </NRadio>
-        </NRadioGroup>
-      </NSpace>
+      <!-- 导入模式说明 -->
+      <div v-if="importMode === 'overwrite'" class="text-center text-orange-500 mb-2">
+        ⚠️ 覆盖模式：导入前将清空现有所有数据
+      </div>
+      <div v-else class="text-center text-green-500 mb-2">
+        ✓ 追加模式：保留现有数据，追加导入
+      </div>
 
       <NSpace justify="center" style="margin-top: 20px;">
         <NCheckboxGroup v-model:value="checkedItems">
