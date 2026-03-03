@@ -49,6 +49,8 @@ A perfect website navigation + webpage bookmarks panel.
 ![](./doc/images/mobile-1.jpg)
 ![](./doc/images/mobile-2.jpg)
 
+## 😎 Features
+
 - 🍉 Clean interface, powerful functionality, low resource consumption
 - 🍊 Easy to use, visual operation, zero-code usage
 - 🍠 One-click switch between internal and external network modes

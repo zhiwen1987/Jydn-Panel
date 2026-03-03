@@ -50,19 +50,6 @@ A perfect website navigation + webpage bookmarks panel.
 ![](./doc/images/mobile-1.jpg)
 ![](./doc/images/mobile-2.jpg)
 
-## 😎 Features
-
-- 🍉 Clean interface, powerful functionality, low resource consumption
-- 🍊 Easy to use, visual operation, zero-code usage
-- 🍠 One-click switch between internal and external network modes
-- 🍵 Supports Docker deployment (compatible with Arm systems)
-- 🎪 Supports multi-account isolation
-- 🎏 Supports viewing system status
-- 🫙 Supports custom JS, CSS
-- 🍻 Simple usage without the need to connect to an external database
-- 🍾 Rich icon styles for free combination, supports [Iconify icon library](https://icon-sets.iconify.design/)
-- 🚁 Supports opening small windows in the webpage (some third-party websites may block this feature)
-
 ## 🔐 首次登录
 
 - **默认管理员账号**：`admin`
