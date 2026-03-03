@@ -95,3 +95,7 @@ docker run -d --name ange-panel --restart=unless-stopped \
 ## ❤️ Thanks
 
 - [Sun-Panel](https://github.com/hslr-s/sun-panel) - Original project
+
+---
+
+[![Star History Chart](https://api.star-history.com/svg?repos=liandu2024/AnGe-Panel&type=Date)](https://star-history.com/#liandu2024/AnGe-Panel&Date)
