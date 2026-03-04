@@ -49,28 +49,6 @@ A perfect website navigation + webpage bookmarks panel.
 ![](./doc/images/mobile-1.jpg)
 ![](./doc/images/mobile-2.jpg)
 
-## 😎 Features
-
-- 🍉 Clean interface, powerful functionality, low resource consumption
-- 🍊 Easy to use, visual operation, zero-code usage
-- 🍠 One-click switch between internal and external network modes
-- 🍵 Supports Docker deployment (compatible with Arm systems)
-- 🎪 Supports multi-account isolation
-- 🎏 Supports viewing system status
-- 🫙 Supports custom JS, CSS
-- 🍻 Simple usage without the need to connect to an external database
-- 🍾 Rich icon styles for free combination, supports [Iconify icon library](https://icon-sets.iconify.design/)
-- 🚁 Supports opening small windows in the webpage (some third-party websites may block this feature)
-
-## 🔐 First Login
-
-- **Default Admin Username**: `admin`
-- **Default Admin Password**: `admin`
-
-On first startup, sample groups and example website/webpage links will be created automatically for quick testing.
-
-> ⚠️ Please change your password after first login!
-
 ## 🐳 Docker Deployment (Recommended)
 
 ```bash
@@ -81,6 +59,16 @@ docker run -d --name ange-panel --restart=unless-stopped \
 ```
 
 > Note: Data is persisted in `/root/ange-data` directory. You can modify settings in the panel after first startup.
+
+## 🔐 First Login
+
+URL: http://[IP]:3002
+- **Default Admin Username**: `admin`
+- **Default Admin Password**: `admin`
+
+On first startup, sample groups and example website/webpage links will be created automatically for quick testing.
+
+> ⚠️ Please change your password after first login!
 
 ## 📋 Documentation
 
@@ -96,7 +84,7 @@ docker run -d --name ange-panel --restart=unless-stopped \
 
 ## ❤️ Thanks
 
-- [Sun-Panel](https://github.com/hslr-s/sun-panel) - Original project
+- [Sun-Panel v1.3.0](https://github.com/hslr-s/sun-panel) - Original project
 
 ---
 
