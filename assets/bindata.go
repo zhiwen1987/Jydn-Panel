@@ -182,7 +182,7 @@ func assetsReadmeMd() (*asset, error) {
 	return a, nil
 }
 
-var _assetsVersion = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x32\xb4\xa8\x31\xd0\x33\xd4\x33\xb4\x00\x04\x00\x00\xff\xff\x62\xef\x33\x4c\x09\x00\x00\x00")
+var _assetsVersion = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x04\x00\x33\x32\xa8\x31\xd0\x33\xd4\x33\x32\x00\x00\xe3\x13\xad\x83\x09\x00\x00\x00")
 
 func assetsVersionBytes() ([]byte, error) {
 	return bindataRead(
@@ -197,7 +197,7 @@ func assetsVersion() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/version", size: 9, mode: os.FileMode(436), modTime: time.Unix(1772512708, 0)}
+	info := bindataFileInfo{name: "assets/version", size: 9, mode: os.FileMode(436), modTime: time.Unix(1773993600, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

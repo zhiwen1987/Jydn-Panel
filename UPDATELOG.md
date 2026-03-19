@@ -18,5 +18,12 @@
 - [其他] 新增arm版本docker支持。[DockerHub](https://hub.docker.com/r/hslr/sun-panel)直接拉取即可
 - [其他] 新增多平台二进制文件运行。[Releases](https://github.com/hslr-s/sun-panel/releases)
 
+## v0.1.20
+> 支持从 v0.1.19 直接升级，无需特殊处理
+
+- [发布] 增加 GitHub Release，便于新版本展示与下载
+- [修正] 同步程序内版本号到 v0.1.20
+- [验证] README 中 Docker 安装方式继续保持不变，镜像仍使用 `ghcr.io/liandu2024/ange-panel:latest`
+
 ## v1.0.0
 - 首个版本
