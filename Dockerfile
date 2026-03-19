@@ -1,19 +1,3 @@
-# build frontend
-FROM node:20-alpine AS web_image
-
-# 华为源
-# RUN npm config set registry https://repo.huaweicloud.com/repository/npm/
-
-WORKDIR /build
-
-COPY ./package.json ./package-lock.json ./
-
-RUN npm ci
-
-COPY . .
-
-RUN npm run build
-
 # build backend
 # 最新alpine3.19导致sqlite3编译失败(https://github.com/mattn/go-sqlite3/issues/1164，
 # 临时解决方案:https://github.com/mattn/go-sqlite3/pull/1177)
@@ -51,7 +35,8 @@ FROM alpine
 
 WORKDIR /app
 
-COPY --from=web_image /build/dist /app/web
+# Publish the current live web bundle from dist/ so Docker matches localhost:3005.
+COPY ./dist /app/web
 
 COPY --from=server_image /build/ange-panel /app/ange-panel
 
