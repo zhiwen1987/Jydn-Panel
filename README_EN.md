@@ -79,7 +79,8 @@ On first startup, sample groups and example website/webpage links will be create
 
 - [Telegram Group](https://t.me/angeworld2024)
 - [AnGe Market](https://blog.angeworld.cc/market)
-
+- **芝麻开门**: [按需付费 AI 接口，官方 1/10 价格](https://ai.opendoor.cn)
+- **超级门户**: [订阅付费 AI 接口，量大管饱的订阅制](https://ai.superdoor.top)
 ---
 
 ## ❤️ Thanks
