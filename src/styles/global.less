@@ -8,3 +8,101 @@ body {
 	padding-bottom: constant(safe-area-inset-bottom);
 	padding-bottom: env(safe-area-inset-bottom);
 }
+
+.n-button.n-button--success-type:not(.n-button--secondary):not(.n-button--tertiary):not(.n-button--quaternary):not(.n-button--ghost),
+.n-button.n-button--info-type:not(.n-button--secondary):not(.n-button--tertiary):not(.n-button--quaternary):not(.n-button--ghost),
+.n-button.n-button--warning-type:not(.n-button--secondary):not(.n-button--tertiary):not(.n-button--quaternary):not(.n-button--ghost),
+.n-button.n-button--error-type:not(.n-button--secondary):not(.n-button--tertiary):not(.n-button--quaternary):not(.n-button--ghost) {
+	--n-color: #0000 !important;
+	--n-color-disabled: #0000 !important;
+}
+
+.n-button.n-button--success-type:not(.n-button--secondary):not(.n-button--tertiary):not(.n-button--quaternary):not(.n-button--ghost) {
+	--n-color-hover: rgba(24, 160, 88, 0.08) !important;
+	--n-color-focus: rgba(24, 160, 88, 0.08) !important;
+	--n-color-pressed: rgba(24, 160, 88, 0.14) !important;
+	--n-text-color: #18a058 !important;
+	--n-text-color-hover: #18a058 !important;
+	--n-text-color-focus: #18a058 !important;
+	--n-text-color-pressed: #0c7a43 !important;
+	--n-text-color-disabled: #18a058 !important;
+}
+
+.n-button.n-button--info-type:not(.n-button--secondary):not(.n-button--tertiary):not(.n-button--quaternary):not(.n-button--ghost) {
+	--n-color-hover: rgba(32, 128, 240, 0.08) !important;
+	--n-color-focus: rgba(32, 128, 240, 0.08) !important;
+	--n-color-pressed: rgba(32, 128, 240, 0.14) !important;
+	--n-text-color: #2080f0 !important;
+	--n-text-color-hover: #2080f0 !important;
+	--n-text-color-focus: #2080f0 !important;
+	--n-text-color-pressed: #1060c9 !important;
+	--n-text-color-disabled: #2080f0 !important;
+}
+
+.n-button.n-button--warning-type:not(.n-button--secondary):not(.n-button--tertiary):not(.n-button--quaternary):not(.n-button--ghost) {
+	--n-color-hover: rgba(212, 107, 8, 0.08) !important;
+	--n-color-focus: rgba(212, 107, 8, 0.08) !important;
+	--n-color-pressed: rgba(212, 107, 8, 0.14) !important;
+	--n-text-color: #d46b08 !important;
+	--n-text-color-hover: #d46b08 !important;
+	--n-text-color-focus: #d46b08 !important;
+	--n-text-color-pressed: #a84f00 !important;
+	--n-text-color-disabled: #d46b08 !important;
+}
+
+.n-button.n-button--error-type:not(.n-button--secondary):not(.n-button--tertiary):not(.n-button--quaternary):not(.n-button--ghost) {
+	--n-color-hover: rgba(208, 48, 80, 0.08) !important;
+	--n-color-focus: rgba(208, 48, 80, 0.08) !important;
+	--n-color-pressed: rgba(208, 48, 80, 0.14) !important;
+	--n-text-color: #d03050 !important;
+	--n-text-color-hover: #d03050 !important;
+	--n-text-color-focus: #d03050 !important;
+	--n-text-color-pressed: #ab1f3f !important;
+	--n-text-color-disabled: #d03050 !important;
+}
+
+.app-starter-modal-content .n-button.n-button--default-type {
+	--n-text-color: #303133 !important;
+	--n-text-color-hover: #303133 !important;
+	--n-text-color-focus: #303133 !important;
+	--n-text-color-pressed: #1f2937 !important;
+	--n-text-color-disabled: #303133 !important;
+}
+
+.app-starter-modal-content .n-button.n-button--primary-type {
+	--n-text-color: #0f172a !important;
+	--n-text-color-hover: #0f172a !important;
+	--n-text-color-focus: #0f172a !important;
+	--n-text-color-pressed: #0f172a !important;
+	--n-text-color-disabled: #0f172a !important;
+}
+
+.app-starter-modal-content .n-button.n-button--tertiary,
+.app-starter-modal-content .n-button.n-button--quaternary {
+	--n-color-hover: rgba(31, 41, 55, 0.08) !important;
+	--n-color-focus: rgba(31, 41, 55, 0.08) !important;
+	--n-color-pressed: rgba(31, 41, 55, 0.14) !important;
+}
+
+.dark .app-starter-modal-content .n-button.n-button--default-type {
+	--n-text-color: #e5e7eb !important;
+	--n-text-color-hover: #f8fafc !important;
+	--n-text-color-focus: #f8fafc !important;
+	--n-text-color-pressed: #cbd5e1 !important;
+	--n-text-color-disabled: #94a3b8 !important;
+}
+
+.dark .app-starter-modal-content .n-button.n-button--primary-type {
+	--n-text-color: #5eead4 !important;
+	--n-text-color-hover: #99f6e4 !important;
+	--n-text-color-focus: #99f6e4 !important;
+	--n-text-color-pressed: #2dd4bf !important;
+	--n-text-color-disabled: #5eead4 !important;
+}
+
+.dark .app-starter-modal-content .n-button.n-button--tertiary,
+.dark .app-starter-modal-content .n-button.n-button--quaternary {
+	--n-color-hover: rgba(226, 232, 240, 0.1) !important;
+	--n-color-focus: rgba(226, 232, 240, 0.1) !important;
+	--n-color-pressed: rgba(226, 232, 240, 0.16) !important;
+}

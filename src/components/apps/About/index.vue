@@ -5,7 +5,7 @@ import srcGithub from '@/assets/about_image/github.png'
 import srcTelegram from '@/assets/about_image/telegram.svg'
 import srcMarket from '@/assets/about_image/market.svg'
 
-const versionName = '1.01'
+const versionName = '2.02'
 </script>
 
 <template>
@@ -109,5 +109,13 @@ const versionName = '1.01'
 .ai-link-button-info:hover {
     color: #0b3154;
     background-color: rgba(32, 128, 240, .22);
+}
+
+.dark .ai-link-button-primary {
+    color: #d1fae5 !important;
+}
+
+.dark .ai-link-button-info {
+    color: #dbeafe !important;
 }
 </style>

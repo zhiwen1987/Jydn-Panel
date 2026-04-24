@@ -84,10 +84,13 @@ Notes:
 - Docker entrypoint initializes `/data/{conf,database,uploads,runtime}` and symlinks `/app/{conf,database,uploads,runtime}` to those persistent paths.
 - GitHub release workflow verifies `dist/index.html`, copies `dist/*` to `web/`, builds `ange-panel`, and packages `conf/` plus `web/`.
 - Docker deployment defaults to port `3005` and persists `/data/{conf,database,uploads,runtime}` for lossless upgrades.
+- When a release version needs to change, increment the second decimal directly in order, for example `1.01` to `1.02` to `1.03`; do not create patch-style versions such as `1.00.1`.
 
 ## Change Discipline
 
 - Prefer small, targeted changes that match existing naming and directory boundaries.
+- Minimize every code change to the specific bug or request. Do not change unrelated UI styling, spacing, layout, behavior, versioning, release assets, or documentation while fixing a narrow issue.
+- When a request names one exact UI property, change only that property. For example, if the request is to brighten button text in dark mode, do not change the button background, border, spacing, classes, markup structure, hover behavior, or other visual styling unless the user explicitly asks.
 - Preserve backward compatibility for existing config files, database rows, uploaded file paths, and API response shapes.
 - Before changing schema or seed behavior, consider both fresh installs and existing installations.
 - Avoid broad formatting-only rewrites; the codebase contains mixed historical style and comments.

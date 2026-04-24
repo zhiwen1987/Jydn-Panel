@@ -4,7 +4,7 @@ const fs = require('fs')
 // git 最新标签
 // const latestTag = execSync('git describe --tags --abbrev=0').toString().trim()
 
-const packVersion = '1.01'
+const packVersion = '2.02'
 
 // 要追加的内容
 const contentToAppend = `\nVITE_APP_VERSION=${packVersion}`
