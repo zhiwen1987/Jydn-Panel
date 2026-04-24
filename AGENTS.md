@@ -49,6 +49,7 @@ Notes:
 - Do not overwrite the current `dist/` bundle with `vite build`/`pnpm run build`. The package scripts intentionally block Vite dev/build; do not re-enable them unless the legacy frontend source/style mismatch has been resolved and the user explicitly asks for a source rebuild workflow.
 - For urgent frontend fixes that must appear on 3005 while preserving the current visual style, patch the backend-served `dist/assets/**` file that `dist/index.html` actually references, then verify through port `3005`.
 - After code changes, the working result must be visible through the backend-served app on port `3005`. Do not consider frontend work complete if it only works on a Vite development port.
+- Keep backend-served frontend files cache-safe: `index.html`, `/assets/**`, `/custom/**`, and service-worker kill-switch files must not allow stale browser/PWA cache to keep an old 3005 UI alive after deployment.
 - Vite dev server config exists only for deliberate frontend rebuild work. Because it creates a second origin with separate browser storage, it can look different from the backend-served app.
 - Backend serves static frontend files from `./web` and uploaded files from `[base] source_path`, currently `./uploads`.
 - SQLite is the default database. If the database file is absent, startup may seed from `seed/database/database.db`.
