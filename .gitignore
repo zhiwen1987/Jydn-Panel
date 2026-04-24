@@ -47,6 +47,7 @@ service/plugins
 
 # local temp
 _tmp_move/
+web
 web/
 service/database/
 service/web/

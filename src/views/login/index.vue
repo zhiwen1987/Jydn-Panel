@@ -69,7 +69,7 @@ function handleChangeLanuage(value: Language) {
           <SvgIcon icon="ion-language" style="width: 20;height: 20;" />
         </div>
         <div class="min-w-[100px]">
-          <NSelect v-model:value="languageValue" size="small" :options="languageOptions" @update-value="handleChangeLanuage" />
+          <NSelect v-model:value="languageValue" class="login-select" size="small" :options="languageOptions" @update-value="handleChangeLanuage" />
         </div>
       </div>
 
@@ -80,7 +80,7 @@ function handleChangeLanuage(value: Language) {
       </div>
       <NForm :model="form" label-width="100px" @keydown.enter="handleSubmit">
         <NFormItem>
-          <NInput v-model:value="form.username" :placeholder="$t('login.usernamePlaceholder')">
+          <NInput v-model:value="form.username" class="login-input" :placeholder="$t('login.usernamePlaceholder')">
             <template #prefix>
               <SvgIcon icon="ph:user-bold" />
             </template>
@@ -88,7 +88,7 @@ function handleChangeLanuage(value: Language) {
         </NFormItem>
 
         <NFormItem>
-          <NInput v-model:value="form.password" type="password" :placeholder="$t('login.passwordPlaceholder')">
+          <NInput v-model:value="form.password" class="login-input" type="password" :placeholder="$t('login.passwordPlaceholder')">
             <template #prefix>
               <SvgIcon icon="mdi:password-outline" />
             </template>
@@ -102,7 +102,7 @@ function handleChangeLanuage(value: Language) {
           <NInput v-model:value="form.vcode" type="text" placeholder="请输入图像验证码" />
         </NFormItem> -->
         <NFormItem style="margin-top: 10px">
-          <NButton type="primary" block :loading="loading" @click="handleSubmit">
+          <NButton class="login-submit" type="primary" block :loading="loading" @click="handleSubmit">
             {{ $t('login.loginButton') }}
           </NButton>
         </NFormItem>
@@ -116,8 +116,8 @@ function handleChangeLanuage(value: Language) {
           </NButton>
         </div> -->
 
-        <div class="flex justify-center text-slate-300">
-          Powered By <a href="https://github.com/hslr-s/sun-panel" target="_blank" class="ml-[5px] text-slate-500">Sun-Panel</a>
+        <div class="login-powered flex justify-center">
+          Powered By <a href="https://github.com/liandu2024/AnGe-Panel" target="_blank" class="login-powered-link ml-[5px]">AnGe-Panel</a>
         </div>
       </NForm>
     </NCard>
@@ -131,7 +131,7 @@ function handleChangeLanuage(value: Language) {
         justify-content: center;
         align-items: center;
         height: 100vh;
-        background-color: #f2f6ff;
+        background-color: #e6edf9;
     }
 
     /* 夜间模式 */
@@ -154,6 +154,10 @@ function handleChangeLanuage(value: Language) {
         width: 100%;
         max-width: 360px;
         min-width: 0;
+        border: 1px solid #c7d0dc !important;
+        outline: none;
+        background-color: rgba(255, 255, 255, 0.96);
+        box-shadow: none !important;
     }
 
     @media (min-width: 600px) {
@@ -165,5 +169,71 @@ function handleChangeLanuage(value: Language) {
   .login-title{
     text-align: center;
     margin: 20px;
+  }
+
+  .login-input,
+  .login-submit,
+  .login-select {
+    --n-border-radius: 10px !important;
+  }
+
+  .login-card .n-input .n-input-wrapper,
+  .login-card .n-button,
+  .login-card .n-base-selection .n-base-selection-label {
+    border-radius: 10px !important;
+  }
+
+  .login-powered {
+    color: #64748b;
+  }
+
+  .login-powered-link {
+    color: #475569;
+  }
+
+  .dark .login-card {
+    color: #1f2937;
+    background-color: rgba(255, 255, 255, 0.96) !important;
+    border-color: #c7d0dc !important;
+  }
+
+  .dark .login-card .n-input,
+  .dark .login-card .n-base-selection {
+    --n-color: #ffffff !important;
+    --n-color-focus: #ffffff !important;
+    --n-color-active: #ffffff !important;
+    --n-text-color: #111827 !important;
+    --n-placeholder-color: #64748b !important;
+    --n-icon-color: #64748b !important;
+    --n-border: 1px solid #cbd5e1 !important;
+    --n-border-hover: 1px solid #7dd3fc !important;
+    --n-border-focus: 1px solid #34d399 !important;
+    --n-border-active: 1px solid #34d399 !important;
+    --n-caret-color: #10b981 !important;
+    --n-box-shadow-focus: 0 0 0 2px rgba(52, 211, 153, 0.16) !important;
+  }
+
+  .dark .login-card .n-input-wrapper,
+  .dark .login-card .n-input__input-el,
+  .dark .login-card .n-base-selection-label {
+    color: #111827 !important;
+    background-color: #ffffff !important;
+  }
+
+  .dark .login-card .n-input__placeholder,
+  .dark .login-card .n-base-selection-placeholder,
+  .dark .login-card .n-input__input-el::placeholder {
+    color: #64748b !important;
+    opacity: 1 !important;
+  }
+
+  .dark .login-card .svg-icon,
+  .dark .login-card .n-base-suffix,
+  .dark .login-card .n-base-selection-label__render-label {
+    color: #64748b !important;
+  }
+
+  .dark .login-card .login-submit .n-button__content {
+    color: #0f172a !important;
   }
   </style>

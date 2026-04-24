@@ -127,7 +127,7 @@ function resetPanelConfig() {
           {{ $t('apps.baseSettings.textContent') }}
         </div>
         <div class="flex items-center mt-[5px]">
-          <NInput v-model:value="panelState.panelConfig.logoText" type="text" show-count :maxlength="20" placeholder="请输入文字" />
+          <NInput v-model:value="panelState.panelConfig.logoText" type="text" show-count :maxlength="20" placeholder="AnGe-Panel" />
         </div>
       </div>
     </NCard>
@@ -153,24 +153,6 @@ function resetPanelConfig() {
       <div v-if="panelState.panelConfig.searchBoxShow" class="flex items-center mt-[5px]">
         <span class="mr-[10px]">{{ $t('apps.baseSettings.searchBarSearchItem') }}</span>
         <NSwitch v-model:value="panelState.panelConfig.searchBoxSearchIcon" />
-      </div>
-    </NCard>
-
-    <NCard style="border-radius:10px" class="mt-[10px]" size="small">
-      <div class="text-slate-500 mb-[5px] font-bold">
-        {{ $t('apps.baseSettings.systemMonitorStatus') }}
-      </div>
-      <div class="flex items-center mt-[5px]">
-        <span class="mr-[10px]">{{ $t('common.show') }}</span>
-        <NSwitch v-model:value="panelState.panelConfig.systemMonitorShow" />
-      </div>
-      <div v-if="panelState.panelConfig.systemMonitorShow" class="flex items-center mt-[5px]">
-        <span class="mr-[10px]">{{ $t('apps.baseSettings.showTitle') }}</span>
-        <NSwitch v-model:value="panelState.panelConfig.systemMonitorShowTitle" />
-      </div>
-      <div v-if="panelState.panelConfig.systemMonitorShow" class="flex items-center mt-[5px]">
-        <span class="mr-[10px]">{{ $t('apps.baseSettings.publicVisitModeShow') }}</span>
-        <NSwitch v-model:value="panelState.panelConfig.systemMonitorPublicVisitModeShow" />
       </div>
     </NCard>
 

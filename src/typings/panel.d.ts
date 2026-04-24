@@ -61,9 +61,6 @@ declare namespace Panel {
         paddingTop?:number
         paddingBottom?:number
         footerHtml?:string
-        systemMonitorShow?:boolean
-        systemMonitorShowTitle?:boolean
-        systemMonitorPublicVisitModeShow?:boolean
         netModeChangeButtonShow?:boolean
         floatingToolsPosition?: 'right-top' | 'right-middle' | 'right-bottom'
         leftCatalogShow?: boolean
@@ -86,4 +83,3 @@ declare namespace Panel {
         itemIconGroupId:number
     }
 }
-

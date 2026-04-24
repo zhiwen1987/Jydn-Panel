@@ -49,12 +49,15 @@ COPY ./docker/entrypoint.sh /entrypoint.sh
 # 中国国内源
 # RUN sed -i "s@dl-cdn.alpinelinux.org@mirrors.aliyun.com@g" /etc/apk/repositories
 
-EXPOSE 3002
+EXPOSE 3005
 
 RUN apk add --no-cache bash ca-certificates su-exec tzdata \
     && chmod +x /app/ange-panel /entrypoint.sh \
     && test -f /app/ange-panel \
-    && /app/ange-panel -config
+    && /app/ange-panel -config \
+    && mkdir -p /app/defaults \
+    && rm -rf /app/defaults/conf \
+    && mv /app/conf /app/defaults/conf
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/app/ange-panel"]

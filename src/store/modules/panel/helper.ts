@@ -2,6 +2,7 @@ import { ss } from '@/utils/storage'
 import { PanelPanelConfigStyleEnum, PanelStateNetworkModeEnum } from '@/enums'
 import defaultBackground from '@/assets/defaultBackground.webp'
 const LOCAL_NAME = 'panelStorage'
+export const DEFAULT_LOGO_TEXT = 'AnGe-Panel'
 
 // Default footer is empty (no branding) unless user sets it.
 const defaultFooterHtml = ''
@@ -15,8 +16,7 @@ export function defaultStatePanelConfig(): Panel.panelConfig {
     iconTextColor: '#ffffff',
     iconTextInfoHideDescription: false,
     iconTextIconHideTitle: false,
-    // Empty by default (hide header title unless user enables it)
-    logoText: '',
+    logoText: DEFAULT_LOGO_TEXT,
     logoImageSrc: '',
     topHeaderShow: false,
     clockShowSecond: false,
@@ -30,9 +30,6 @@ export function defaultStatePanelConfig(): Panel.panelConfig {
     paddingTop: 0,
     paddingBottom: 0,
     footerHtml: defaultFooterHtml,
-    systemMonitorShow: false,
-    systemMonitorShowTitle: true,
-    systemMonitorPublicVisitModeShow: false,
     netModeChangeButtonShow: true,
     floatingToolsPosition: 'right-top',
     leftCatalogShow: true,
@@ -45,6 +42,13 @@ export function defaultStatePanelConfig(): Panel.panelConfig {
     webpageListGapPx: 10, // 网页列表条目间距
 
   }
+}
+
+export function normalizePanelConfig(config?: Panel.panelConfig): Panel.panelConfig {
+  const panelConfig = { ...defaultStatePanelConfig(), ...config }
+  if (!panelConfig.logoText)
+    panelConfig.logoText = DEFAULT_LOGO_TEXT
+  return panelConfig
 }
 
 export function defaultState(): Panel.State {

@@ -1,15 +1,13 @@
 const fs = require('fs')
 // const { execSync } = require('child_process')
-const moment = require('moment')
 
 // git 最新标签
 // const latestTag = execSync('git describe --tags --abbrev=0').toString().trim()
 
-// 设置默认时区为 'Asia/Shanghai'
-const packDate = moment().utc().format('YYYYMMDD')
+const packVersion = '1.00'
 
 // 要追加的内容
-const contentToAppend = `\nVITE_APP_VERSION=${packDate}`
+const contentToAppend = `\nVITE_APP_VERSION=${packVersion}`
 // 读取文件原始内容
 const envFilePath = '.env'
 let envContent = fs.readFileSync(envFilePath, 'utf-8')

@@ -1,14 +1,9 @@
-version: "3.2"
-
 services:
-  sun-panel:
-    image: 'hslr/sun-panel:latest'
-    container_name: sun-panel
+  ange-panel:
+    image: ghcr.io/liandu2024/ange-panel:v1.00
+    container_name: ange-panel
     volumes:
-    - ./conf:/app/conf
-    - ./uploads:/app/uploads
-    - ./database:/app/database
-    # - ./runtime:/app/runtime
+      - ./data:/data
     ports:
-    - 3002:3002
-    restart: always
+      - "3005:3005"
+    restart: unless-stopped

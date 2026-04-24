@@ -53,16 +53,27 @@ A perfect website navigation + webpage bookmarks panel.
 
 ```bash
 docker run -d --name ange-panel --restart=unless-stopped \
-  -p 3002:3002 \
+  -p 3005:3005 \
   -v /root/ange-data:/data \
-  ghcr.io/liandu2024/ange-panel:latest
+  ghcr.io/liandu2024/ange-panel:v1.00
 ```
 
-> Note: Data is persisted in `/root/ange-data` directory. You can modify settings in the panel after first startup.
+> Note: `/root/ange-data` persists `conf`, `database`, `uploads`, and `runtime`. Keep this directory when upgrading.
+
+Upgrade:
+
+```bash
+docker pull ghcr.io/liandu2024/ange-panel:v1.00
+docker stop ange-panel && docker rm ange-panel
+docker run -d --name ange-panel --restart=unless-stopped \
+  -p 3005:3005 \
+  -v /root/ange-data:/data \
+  ghcr.io/liandu2024/ange-panel:v1.00
+```
 
 ## 🔐 First Login
 
-URL: http://[IP]:3002
+URL: http://[IP]:3005
 - **Default Admin Username**: `admin`
 - **Default Admin Password**: `admin`
 

@@ -46,7 +46,6 @@
       "checkUpdate": "Check for new version",
       "discussions": "Discussions:",
       "donate": "☕Donate",
-      "frontVersionText": "Front-end version number",
       "issue": "Feedback:",
       "viewUpdateLog": "Click here to view update log"
     },
@@ -75,7 +74,6 @@
       "show": "Show",
       "showTitle": "Show title",
       "smallIcon": "Small icon",
-      "systemMonitorStatus": "System status component",
       "textContent": "Text content",
       "topMargin": "Top margin",
       "uploadOrDragText": "Click to upload or drag and drop into the box to replace the image",
@@ -131,7 +129,7 @@
     "action": "Action",
     "add": "Add",
     "addSuccess": "Added successfully",
-    "appName": "Sun-Panel",
+    "appName": "AnGe-Panel",
     "backgroundColor": "Background color",
     "cancel": "Cancel",
     "confirm": "Confirm",
@@ -201,15 +199,6 @@
     "searchBox": {
       "inputPlaceholder": "Enter search content",
       "openWithNewOpen": "Open in new window"
-    },
-    "systemMonitor": {
-      "cpuState": "CPU status",
-      "diskMountPoint": "Mount point",
-      "diskState": "Disk status",
-      "memoryState": "Memory status",
-      "progressColor": "Main color",
-      "progressRailColor": "Secondary color",
-      "systemState": "System status"
     }
   },
   "form": {

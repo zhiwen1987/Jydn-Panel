@@ -2,13 +2,8 @@
 import { VueDraggable } from 'vue-draggable-plus'
 import { NBackTop, NButton, NButtonGroup, NDropdown, NModal, NSkeleton, NSpin, NEllipsis, useDialog, useMessage } from 'naive-ui'
 import { computed, nextTick, onMounted, onUnmounted, ref, h } from 'vue'
-
-const isMobile = ref(false)
-function updateIsMobile() {
-  isMobile.value = window.innerWidth <= 500
-}
 import { AppIcon, AppStarter, EditItem } from './components'
-import { Clock, SearchBox, SystemMonitor } from '@/components/deskModule'
+import { Clock, SearchBox } from '@/components/deskModule'
 import { SvgIcon, SvgIconOnline } from '@/components/common'
 import { deletes, edit, getListByGroupId, saveSort } from '@/api/panel/itemIcon'
 import { getList as getGroupList } from '@/api/panel/itemIconGroup'
@@ -34,6 +29,11 @@ const authStore = useAuthStore()
 const scrollContainerRef = ref<HTMLElement | undefined>(undefined)
 const groupRefs = ref<Record<number, HTMLElement | null>>({})
 const groupDotMap = ref<Record<number, number>>({})
+const isMobile = ref(false)
+
+function updateIsMobile() {
+  isMobile.value = window.innerWidth <= 500
+}
 
 const editItemInfoShow = ref<boolean>(false)
 const editItemInfoData = ref<Panel.ItemInfo | null>(null)
@@ -722,19 +722,6 @@ function getGroupDotTop(groupId?: number) {
               网页收藏
             </div>
           </div>
-          <!-- 系统监控状态 -->
-          <div
-            v-if="panelState.panelConfig.systemMonitorShow
-              && ((panelState.panelConfig.systemMonitorPublicVisitModeShow && authStore.visitMode === VisitMode.VISIT_MODE_PUBLIC)
-                || authStore.visitMode === VisitMode.VISIT_MODE_LOGIN)"
-            class="flex mx-auto"
-          >
-            <SystemMonitor
-              :allow-edit="authStore.visitMode === VisitMode.VISIT_MODE_LOGIN"
-              :show-title="panelState.panelConfig.systemMonitorShowTitle"
-            />
-          </div>
-
           <!-- 组纵向排列 -->
           <div
             v-for="(itemGroup, itemGroupIndex) in filterItems" :key="itemGroupIndex"
@@ -1285,6 +1272,10 @@ html {
   /* Firefox: thin 会强制变窄，导致和左侧目录条宽度不一致 */
   scrollbar-width: auto;
   scrollbar-color: rgba(148, 163, 184, 0.9) transparent;
+}
+
+.sun-main > :global(.show-native-scrollbar) {
+  scrollbar-gutter: stable both-edges;
 }
 
 :global(.show-native-scrollbar::-webkit-scrollbar) {

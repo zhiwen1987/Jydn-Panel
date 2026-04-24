@@ -3,6 +3,7 @@ set -eu
 
 APP_DIR="/app"
 DATA_DIR="${ANGE_DATA_DIR:-/data}"
+DEFAULT_CONF_DIR="${APP_DIR}/defaults/conf"
 
 # Create persistent dirs
 mkdir -p "${DATA_DIR}/conf" "${DATA_DIR}/database" "${DATA_DIR}/uploads" "${DATA_DIR}/runtime/temp"
@@ -10,7 +11,9 @@ mkdir -p "${DATA_DIR}/conf" "${DATA_DIR}/database" "${DATA_DIR}/uploads" "${DATA
 # If this is a fresh volume, initialize config/db from image defaults/seed
 # 1) conf
 if [ -z "$(ls -A "${DATA_DIR}/conf" 2>/dev/null || true)" ]; then
-  if [ -d "${APP_DIR}/conf" ]; then
+  if [ -d "${DEFAULT_CONF_DIR}" ]; then
+    cp -a "${DEFAULT_CONF_DIR}/." "${DATA_DIR}/conf/" || true
+  elif [ -d "${APP_DIR}/conf" ]; then
     cp -a "${APP_DIR}/conf/." "${DATA_DIR}/conf/" || true
   fi
 fi
@@ -32,11 +35,15 @@ fi
 # Link runtime paths expected by the app (relative ./conf ./database ./uploads ./runtime)
 link_dir() {
   src="$1"; dst="$2"
-  if [ -e "${src}" ] && [ ! -L "${src}" ]; then
-    # leave existing real dir in place
+  if [ -L "${src}" ]; then
+    rm -f "${src}" 2>/dev/null || true
+    ln -s "${dst}" "${src}"
     return
   fi
-  rm -f "${src}" 2>/dev/null || true
+  if [ -e "${src}" ]; then
+    # Do not delete a real directory: it may be a legacy user bind mount.
+    return
+  fi
   ln -s "${dst}" "${src}"
 }
 

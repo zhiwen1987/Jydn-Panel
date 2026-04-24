@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import type { UploadFileInfo } from 'naive-ui'
 import { NAlert, NButton, NCheckbox, NCheckboxGroup, NDivider, NInput, NSpace, NUpload, NUploadDragger, useMessage } from 'naive-ui'
 import { RoundCardModal, SvgIcon } from '@/components/common'
 import type { IconGroup, ImportJsonResult } from '@/utils/jsonImportExport'
 import { ConfigVersionLowError, FormatError, exportJson, importJsonString } from '@/utils/jsonImportExport'
-import { get as getAbout } from '@/api/system/about'
 import { edit as addGroup, deletes as deleteGroups, getList as getGroupList } from '@/api/panel/itemIconGroup'
 import { addMultiple as addMultipleIcons, deletes as deleteIcons, getListByGroupId } from '@/api/panel/itemIcon'
 
@@ -23,7 +22,7 @@ const importRoundModalShow = ref(false)
 const exportRoundModalShow = ref(false)
 const loading = ref(false)
 const uploadLoading = ref(false)
-const version = ref('') // 当前软件版本
+const version = ref('1.00') // 当前软件版本
 const debug = ref(false)
 
 const importObj = ref<ImportJsonResult | null> (null)
@@ -238,18 +237,6 @@ async function exportIcons(): Promise<IconGroup[]> {
     return []
   }
 }
-
-onMounted(() => {
-  interface Version {
-    versionName: string
-    versionCode: number
-  }
-
-  getAbout<Version>().then((res) => {
-    if (res.code === 0)
-      version.value = res.data.versionName
-  })
-})
 
 function handleFileChange(options: { file: UploadFileInfo; fileList: Array<UploadFileInfo> }) {
   uploadLoading.value = true

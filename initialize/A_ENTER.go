@@ -17,7 +17,6 @@ import (
 	"sun-panel/lib/cmn"
 	"sun-panel/models"
 	"sun-panel/structs"
-	"time"
 
 	"log"
 
@@ -89,7 +88,6 @@ func InitApp() error {
 	// 其他的初始化
 	global.VerifyCodeCachePool = other.InitVerifyCodeCachePool()
 	global.SystemSetting = systemSettingCache.InItSystemSettingCache()
-	global.SystemMonitor = global.NewCache[interface{}](5*time.Hour, -1, "systemMonitorCache")
 
 	return nil
 }
@@ -194,7 +192,7 @@ func Logo() {
 
 	versionInfo := cmn.GetSysVersionInfo()
 	fmt.Println("Version:", versionInfo.Version)
-	fmt.Println("Welcome to the Sun-Panel.")
-	fmt.Println("Project address:", "https://github.com/hslr-s/sun-panel")
+	fmt.Println("Welcome to the AnGe-Panel.")
+	fmt.Println("Project address:", "https://github.com/liandu2024/AnGe-Panel")
 
 }

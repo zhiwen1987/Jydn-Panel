@@ -11,8 +11,8 @@ function setupPlugins(env: ImportMetaEnv): PluginOption[] {
     env.VITE_GLOB_APP_PWA === 'true' && VitePWA({
       injectRegister: 'auto',
       manifest: {
-        name: 'Sun-Panel',
-        short_name: 'Sun-Panel',
+        name: 'AnGe-Panel',
+        short_name: 'AnGe-Panel',
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
@@ -38,7 +38,8 @@ export default defineConfig((env) => {
     plugins: setupPlugins(viteEnv),
     server: {
       host: '0.0.0.0',
-      port: 1002,
+      port: 3005,
+      strictPort: true,
       open: false,
       proxy: {
         '/api': {

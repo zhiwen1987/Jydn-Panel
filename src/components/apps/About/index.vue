@@ -1,26 +1,11 @@
 <script setup lang="ts">
-import { NDivider, NGradientText, NTag } from 'naive-ui'
-import { onMounted, ref } from 'vue'
-import { get } from '@/api/system/about'
+import { NDivider, NGradientText } from 'naive-ui'
 import srcSvglogo from '@/assets/logo.svg'
 import srcGithub from '@/assets/about_image/github.png'
 import srcTelegram from '@/assets/about_image/telegram.svg'
 import srcMarket from '@/assets/about_image/market.svg'
 
-interface Version {
-  versionName: string
-  versionCode: number
-}
-
-const versionName = ref('')
-const frontVersion = import.meta.env.VITE_APP_VERSION || 'unknown'
-
-onMounted(() => {
-  get<Version>().then((res) => {
-    if (res.code === 0)
-      versionName.value = res.data.versionName
-  })
-})
+const versionName = '1.00'
 </script>
 
 <template>
@@ -59,10 +44,23 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="mt-5">
-        <NTag :bordered="false" size="small">
-          {{ $t("apps.about.frontVersionText") }}: FV-{{ frontVersion }}
-        </NTag>
+      <div class="mt-5 flex flex-wrap justify-center gap-3">
+        <a
+          href="https://ai.superdoor.top"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="ai-link-button ai-link-button-primary"
+        >
+          SUPERDOOR（订阅制AI接口）
+        </a>
+        <a
+          href="https://ai.opendoor.cn"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="ai-link-button ai-link-button-info"
+        >
+          OPENDOOR（按需付费AI接口）
+        </a>
       </div>
 
       <div class="mt-4 text-sm text-gray-500">
@@ -75,5 +73,41 @@ onMounted(() => {
 <style>
 .link{
     color:rgb(0, 89, 255)
+}
+
+.ai-link-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+
+.ai-link-button-primary {
+    color: #0f5132;
+    background-color: rgba(24, 160, 88, .14);
+    border-color: rgba(24, 160, 88, .28);
+}
+
+.ai-link-button-primary:hover {
+    color: #0a3d26;
+    background-color: rgba(24, 160, 88, .22);
+}
+
+.ai-link-button-info {
+    color: #12446f;
+    background-color: rgba(32, 128, 240, .14);
+    border-color: rgba(32, 128, 240, .28);
+}
+
+.ai-link-button-info:hover {
+    color: #0b3154;
+    background-color: rgba(32, 128, 240, .22);
 }
 </style>
