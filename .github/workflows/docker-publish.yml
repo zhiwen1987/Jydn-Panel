@@ -10,7 +10,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/ange-panel
+  # IMAGE_NAME will become: ghcr.io/<owner>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
