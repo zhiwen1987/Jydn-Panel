@@ -59,7 +59,7 @@ A perfect website navigation + webpage bookmarks panel.
 docker run -d --name ange-panel --restart=unless-stopped \
   -p 3005:3005 \
   -v /root/ange-data:/data \
-  ghcr.io/liandu2024/ange-panel:v1.00
+  ghcr.io/liandu2024/ange-panel:v1.01
 ```
 
 > 说明：`/root/ange-data` 会持久化 `conf`、`database`、`uploads`、`runtime`。升级时保留这个目录即可无损升级。
@@ -67,12 +67,12 @@ docker run -d --name ange-panel --restart=unless-stopped \
 升级：
 
 ```bash
-docker pull ghcr.io/liandu2024/ange-panel:v1.00
+docker pull ghcr.io/liandu2024/ange-panel:v1.01
 docker stop ange-panel && docker rm ange-panel
 docker run -d --name ange-panel --restart=unless-stopped \
   -p 3005:3005 \
   -v /root/ange-data:/data \
-  ghcr.io/liandu2024/ange-panel:v1.00
+  ghcr.io/liandu2024/ange-panel:v1.01
 ```
 
 ## 🔐 首次登录

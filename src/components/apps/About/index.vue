@@ -5,7 +5,7 @@ import srcGithub from '@/assets/about_image/github.png'
 import srcTelegram from '@/assets/about_image/telegram.svg'
 import srcMarket from '@/assets/about_image/market.svg'
 
-const versionName = '1.00'
+const versionName = '1.01'
 </script>
 
 <template>
