@@ -1,4 +1,4 @@
-const CACHE_RESET_VERSION = '20260424-cache-reset-1'
+const CACHE_RESET_VERSION = '20260425-cache-reset-2'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting())

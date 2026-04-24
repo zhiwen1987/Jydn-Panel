@@ -59,6 +59,12 @@ func webNoCache() gin.HandlerFunc {
 			c.Header("Pragma", "no-cache")
 			c.Header("Expires", "0")
 			c.Header("Surrogate-Control", "no-store")
+			if path == "/" ||
+				path == "/index.html" ||
+				path == "/sw.js" ||
+				path == "/service-worker.js" {
+				c.Header("Clear-Site-Data", `"cache"`)
+			}
 		}
 		c.Next()
 	}
