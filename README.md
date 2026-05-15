@@ -95,7 +95,7 @@ docker run -d --name ange-panel --restart=unless-stopped \
 
 - [Telegram 群](https://t.me/angeworld2024)
 - [安格超市](https://blog.angeworld.cc/market)
-- **芝麻开门**: [按需付费 AI 接口，官方 1/10 价格](https://ai.opendoor.cn)
+- **芝麻开门**: [按需付费 AI 接口，官方 1/10 价格](https://ai.opendoor.sbs)
 - **超级门户**: [订阅付费 AI 接口，量大管饱的订阅制](https://ai.superdoor.top)
 ---
 
