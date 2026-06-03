@@ -5,7 +5,7 @@ import srcGithub from '@/assets/about_image/github.png'
 import srcTelegram from '@/assets/about_image/telegram.svg'
 import srcMarket from '@/assets/about_image/market.svg'
 
-const versionName = '2.03'
+const versionName = '2.04'
 </script>
 
 <template>
@@ -54,7 +54,7 @@ const versionName = '2.03'
           SUPERDOOR（订阅制AI接口）
         </a>
         <a
-          href="https://ai.opendoor.cn"
+          href="https://ai.opendoor.sbs"
           target="_blank"
           rel="noopener noreferrer"
           class="ai-link-button ai-link-button-info"
