@@ -55,20 +55,20 @@ A perfect website navigation + webpage bookmarks panel.
 docker run -d --name ange-panel --restart=unless-stopped \
   -p 3005:3005 \
   -v /root/ange-data:/data \
-  ghcr.io/liandu2024/ange-panel:v2.04
+  ghcr.io/liandu2024/ange-panel:latest
 ```
 
-> Note: `/root/ange-data` persists `conf`, `database`, `uploads`, and `runtime`. Keep this directory when upgrading.
+> Note: Only use the `latest` Docker image. `/root/ange-data` persists `conf`, `database`, `uploads`, and `runtime`. Keep this directory when upgrading.
 
 Upgrade:
 
 ```bash
-docker pull ghcr.io/liandu2024/ange-panel:v2.04
+docker pull ghcr.io/liandu2024/ange-panel:latest
 docker stop ange-panel && docker rm ange-panel
 docker run -d --name ange-panel --restart=unless-stopped \
   -p 3005:3005 \
   -v /root/ange-data:/data \
-  ghcr.io/liandu2024/ange-panel:v2.04
+  ghcr.io/liandu2024/ange-panel:latest
 ```
 
 ## 🔐 First Login
