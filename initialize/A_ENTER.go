@@ -1,9 +1,13 @@
-package initialize包初始化
+package initialize
 
-import (导入 (
-	"flag"“flag”
-	"fmt"“fmt”
-	"os"“os”“os”
+import (
+	"flag"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/gin-gonic/gin"
+
 	"sun-panel/global"
 	"sun-panel/initialize/cUserToken"
 	"sun-panel/initialize/config"
@@ -17,16 +21,9 @@ import (导入 (
 	"sun-panel/lib/cmn"
 	"sun-panel/models"
 	"sun-panel/structs"
-
-	"log"
-
-	"github.com/gin-gonic/gin"
 )
 
 var DB_DRIVER = database.SQLITE
-
-// var RUNCODE = "debug"
-// var ISDOCER = "" // 是否为docker模式
 
 func InitApp() error {
 	Logo()
@@ -75,7 +72,6 @@ func InitApp() error {
 			if err != nil {
 				log.Panicln("Redis initialization error", err)
 				panic(err)
-				// return err
 			}
 			global.RedisDb = rdb
 		}
@@ -120,15 +116,12 @@ func DatabaseConnect() {
 	}
 
 	database.CreateDatabase(databaseDrive, global.Db)
-
-	// Seed uploads from template if uploads directory is missing
 	database.EnsureSeedUploads()
-
 	database.NotFoundAndCreateUser(global.Db)
 	database.NotFoundAndCreateExampleData(global.Db)
 }
 
-// 命令行运行
+// CommandRun 命令行参数处理
 func CommandRun() {
 	var (
 		cfg bool
@@ -137,50 +130,42 @@ func CommandRun() {
 
 	flag.BoolVar(&cfg, "config", false, "Generate configuration file")
 	flag.BoolVar(&pwd, "password-reset", false, "Reset the password of the first user")
-
 	flag.Parse()
 
 	if cfg {
-		// 生成配置文件
 		fmt.Println("Generating configuration file")
 		cmn.AssetsTakeFileToPath("conf.example.ini", "conf/conf.example.ini")
 		cmn.AssetsTakeFileToPath("conf.example.ini", "conf/conf.ini")
-		fmt.Println("The configuration file has been created  conf/conf.ini ", "Please modify according to your own needs")
-		os.Exit(0) // 务必退出
+		fmt.Println("The configuration file has been created conf/conf.ini , Please modify according to your own needs")
+		os.Exit(0)
 	} else if pwd {
 		// 重置密码
-
-		// 配置初始化
 		config, _ := config.ConfigInit()
 		global.Config = config
 
 		DatabaseConnect()
 		userInfo := models.User{}
-		if err := global.Db.Where("role=?", 1).Order("id").First(&userInfo).Error; err != nil {		如果 err := global.Db.数据库.Where("role=?", 1).Order("id").First(&userInfo).Error; err != nil {
+		if err := global.Db.Where("role=?", 1).Order("id").First(&userInfo).Error; err != nil {
 			fmt.Println("ERROR", err.Error())
-			os.Exit(0) // 务必退出
+			os.Exit(0)
 		}
 
-		newPassword := "12345678"		新密码 := "12345678"
-
+		newPassword := "12345678"
 		updateInfo := models.User{
-			Password: cmn.PasswordEncryption(newPassword),			密码：cmn.密码加密(新密码),
+			Password: cmn.PasswordEncryption(newPassword),
 			Token:    "",
 		}
-		// 重置第一个管理员的密码
-		if err := global.Db.Select("Password", "Token").Where("id=?", userInfo.ID).Updates(&updateInfo).Error; err != nil {		如果 err := global.Db.数据库.查询("Password""密码", "Token""令牌""令牌").并满足("id=?", userInfo., 用户信息., 用户信息., 用户信息., 用户信息.ID).更新(&updateInfo).更新（&updateInfo）.更新（&updateInfo）.更新（&updateInfo）.更新（&updateInfo）.更新（&updateInfo）.出现错误；err 不等于 nil {
+		if err := global.Db.Select("Password", "Token").Where("id=?", userInfo.ID).Updates(&updateInfo).Error; err != nil {
 			fmt.Println("ERROR", err.Error())
-			os.Exit(0) // 务必退出
+			os.Exit(0)
 		}
 
-		fmt.Println("The password has been successfully reset. Here is the account information")		fmt.Println("密码已成功重置。以下是账户信息")
-		fmt.Println("Username "“用户名”, userInfo.Username)		fmt.Println("用户名 ", userInfo.Username)
-		fmt.Println("Password ", newPassword)
-		os.Exit(0) // 务必退出
-	} else {
-		return
+		fmt.Println("The password has been successfully reset. Here is the account information")
+		fmt.Println("Username 用户名:", userInfo.Username)
+		fmt.Println("Password 密码:", newPassword)
+		os.Exit(0)
 	}
-	os.Exit(0) // 务必退出
+	return
 }
 
 func Logo() {
@@ -191,8 +176,9 @@ func Logo() {
 	fmt.Println("")
 
 	versionInfo := cmn.GetSysVersionInfo()
-	fmt.Println("Version:", versionInfo.Version)	fmt.Println("版本:", versionInfo.Version)
-	fmt.Println("Welcome to the ""欢迎来到 "欢迎来到 Jydn-panel.")	fmt.Println("欢迎来到 Jydn-panel.")
-	fmt.Println("Project address:", "https://github.com/zhiwen1987/Jydn-panel"“https://github.com/zhiwen1987/Jydn-panel”)	fmt.Println("项目地址：", "https://github.com/zhiwen1987/Jydn-panel"“https://github.com/zhiwen1987/Jydn-panel”)
-
+	fmt.Println("Version:", versionInfo.Version)
+	fmt.Println("版本:", versionInfo.Version)
+	fmt.Println("Welcome to Jydn-panel. 欢迎来到 Jydn-panel.")
+	fmt.Println("Project address:", "https://github.com/zhiwen1987/Jydn-panel")
+	fmt.Println("项目地址：", "https://github.com/zhiwen1987/Jydn-panel")
 }
