@@ -1,14 +1,14 @@
-[[ 简体中文 ]](https://github.com/liandu2024/AnGe-Panel/blob/main/README.md) |
-[[ English ]](https://github.com/liandu2024/AnGe-Panel/blob/main/README_EN.md)
+[[ 简体中文 ]](https://github.com/zhiwen1987/Jydn-Panel/blob/main/README.md) |
+[[ English ]](https://github.com/zhiwen1987/Jydn-Panel/blob/main/README_EN.md)
 
 <div align=center>
 
 <img src="./doc/images/main-preview.jpg" width="100%" />
 
-# AnGe-Panel
+# Jydn-Panel
 
-[![Github](https://img.shields.io/badge/Github-123456?logo=github&labelColor=242424)](https://github.com/liandu2024/AnGe-Panel)
-[![docker](https://img.shields.io/badge/docker-123456?logo=docker&logoColor=fff&labelColor=1c7aed)](https://github.com/liandu2024/AnGe-Panel/pkgs/container/ange-panel) 
+[![Github](https://img.shields.io/badge/Github-123456?logo=github&labelColor=242424)](https://github.com/zhiwen1987/Jydn-Panel)
+[![docker](https://img.shields.io/badge/docker-123456?logo=docker&logoColor=fff&labelColor=1c7aed)](https://github.com/zhiwen1987/Jydn-Panel/pkgs/container/Jydn-Panel) 
 [![Telegram](https://img.shields.io/badge/Telegram-123456?logo=telegram&labelColor=229ED9)](https://t.me/angeworld2024)
 <br>
 
@@ -52,10 +52,10 @@ A perfect website navigation + webpage bookmarks panel.
 ## 🐳 Docker Deployment (Recommended)
 
 ```bash
-docker run -d --name ange-panel --restart=unless-stopped \
+docker run -d --name Jydn-Panel --restart=unless-stopped \
   -p 3005:3005 \
   -v /root/ange-data:/data \
-  ghcr.io/liandu2024/ange-panel:latest
+  ghcr.io/zhiwen1987/Jydn-Panel:latest
 ```
 
 > Note: Only use the `latest` Docker image. `/root/ange-data` persists `conf`, `database`, `uploads`, and `runtime`. Keep this directory when upgrading.
@@ -63,12 +63,12 @@ docker run -d --name ange-panel --restart=unless-stopped \
 Upgrade:
 
 ```bash
-docker pull ghcr.io/liandu2024/ange-panel:latest
-docker stop ange-panel && docker rm ange-panel
-docker run -d --name ange-panel --restart=unless-stopped \
+docker pull ghcr.io/zhiwen1987/Jydn-Panel:latest
+docker stop Jydn-Panel && docker rm Jydn-Panel
+docker run -d --name Jydn-Panel --restart=unless-stopped \
   -p 3005:3005 \
   -v /root/ange-data:/data \
-  ghcr.io/liandu2024/ange-panel:latest
+  ghcr.io/zhiwen1987/Jydn-Panel:latest
 ```
 
 ## 🔐 First Login
@@ -83,13 +83,13 @@ On first startup, sample groups and example website/webpage links will be create
 
 ## 📋 Documentation
 
-- [中文文档](https://github.com/liandu2024/AnGe-Panel/blob/main/README.md)
-- [English Documentation](https://github.com/liandu2024/AnGe-Panel/blob/main/README_EN.md)
+- [中文文档](https://github.com/zhiwen1987/Jydn-Panel/blob/main/README.md)
+- [English Documentation](https://github.com/zhiwen1987/Jydn-Panel/blob/main/README_EN.md)
 
 ## 🏖️ Community
 
-- [Telegram Group](https://t.me/angeworld2024)
-- [AnGe Market](https://blog.angeworld.cc/market)
+- [Telegram Group](https://www.kefu.me)
+- [Jydn Market](https://www.kefu.me)
 - **芝麻开门**: [按需付费 AI 接口，官方 1/10 价格](https://ai.opendoor.sbs)
 - **超级门户**: [订阅付费 AI 接口，量大管饱的订阅制](https://ai.superdoor.top)
 ---
@@ -100,4 +100,4 @@ On first startup, sample groups and example website/webpage links will be create
 
 ---
 
-[![Star History Chart](https://api.star-history.com/svg?repos=liandu2024/AnGe-Panel&type=Date)](https://star-history.com/#liandu2024/AnGe-Panel&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=zhiwen1987/Jydn-Panel&type=Date)](https://star-history.com/#zhiwen1987/Jydn-Panel&Date)
