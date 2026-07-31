@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_NAME="ange-panel"
-REPO="liandu2024/AnGe-Panel"
+APP_NAME="Jydn-panel"
+REPO="zhiwen1987/Jydn-Panel"
 INSTALL_DIR="/opt/${APP_NAME}"
 BIN_NAME="${APP_NAME}"
 PORT=""
@@ -157,7 +157,7 @@ main() {
   # systemd service
   cat > "/etc/systemd/system/${APP_NAME}.service" <<SERVICE
 [Unit]
-Description=AnGe-Panel
+Description=Jydn-Panel
 After=network.target
 
 [Service]
