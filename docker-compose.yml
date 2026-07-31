@@ -1,7 +1,7 @@
 services:
   ange-panel:
-    image: ghcr.io/liandu2024/ange-panel:v2.04
-    container_name: ange-panel
+    image: ghcr.io/zhiwen1987/Jydn-panel:v2.04
+    container_name: Jydn-panel
     volumes:
       - ./data:/data
     ports:
