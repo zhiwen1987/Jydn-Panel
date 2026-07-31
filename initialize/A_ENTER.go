@@ -1,9 +1,9 @@
-package initialize
+package initialize包初始化
 
-import (
-	"flag"
-	"fmt"
-	"os"
+import (导入 (
+	"flag"“flag”
+	"fmt"“fmt”
+	"os"“os”“os”
 	"sun-panel/global"
 	"sun-panel/initialize/cUserToken"
 	"sun-panel/initialize/config"
@@ -156,25 +156,25 @@ func CommandRun() {
 
 		DatabaseConnect()
 		userInfo := models.User{}
-		if err := global.Db.Where("role=?", 1).Order("id").First(&userInfo).Error; err != nil {
+		if err := global.Db.Where("role=?", 1).Order("id").First(&userInfo).Error; err != nil {		如果 err := global.Db.数据库.Where("role=?", 1).Order("id").First(&userInfo).Error; err != nil {
 			fmt.Println("ERROR", err.Error())
 			os.Exit(0) // 务必退出
 		}
 
-		newPassword := "12345678"
+		newPassword := "12345678"		新密码 := "12345678"
 
 		updateInfo := models.User{
-			Password: cmn.PasswordEncryption(newPassword),
+			Password: cmn.PasswordEncryption(newPassword),			密码：cmn.密码加密(新密码),
 			Token:    "",
 		}
 		// 重置第一个管理员的密码
-		if err := global.Db.Select("Password", "Token").Where("id=?", userInfo.ID).Updates(&updateInfo).Error; err != nil {
+		if err := global.Db.Select("Password", "Token").Where("id=?", userInfo.ID).Updates(&updateInfo).Error; err != nil {		如果 err := global.Db.数据库.查询("Password""密码", "Token""令牌""令牌").并满足("id=?", userInfo., 用户信息., 用户信息., 用户信息., 用户信息.ID).更新(&updateInfo).更新（&updateInfo）.更新（&updateInfo）.更新（&updateInfo）.更新（&updateInfo）.更新（&updateInfo）.出现错误；err 不等于 nil {
 			fmt.Println("ERROR", err.Error())
 			os.Exit(0) // 务必退出
 		}
 
-		fmt.Println("The password has been successfully reset. Here is the account information")
-		fmt.Println("Username ", userInfo.Username)
+		fmt.Println("The password has been successfully reset. Here is the account information")		fmt.Println("密码已成功重置。以下是账户信息")
+		fmt.Println("Username "“用户名”, userInfo.Username)		fmt.Println("用户名 ", userInfo.Username)
 		fmt.Println("Password ", newPassword)
 		os.Exit(0) // 务必退出
 	} else {
@@ -191,8 +191,8 @@ func Logo() {
 	fmt.Println("")
 
 	versionInfo := cmn.GetSysVersionInfo()
-	fmt.Println("Version:", versionInfo.Version)
-	fmt.Println("Welcome to the AnGe-Panel.")
-	fmt.Println("Project address:", "https://github.com/liandu2024/AnGe-Panel")
+	fmt.Println("Version:", versionInfo.Version)	fmt.Println("版本:", versionInfo.Version)
+	fmt.Println("Welcome to the ""欢迎来到 "欢迎来到 Jydn-panel.")	fmt.Println("欢迎来到 Jydn-panel.")
+	fmt.Println("Project address:", "https://github.com/zhiwen1987/Jydn-panel"“https://github.com/zhiwen1987/Jydn-panel”)	fmt.Println("项目地址：", "https://github.com/zhiwen1987/Jydn-panel"“https://github.com/zhiwen1987/Jydn-panel”)
 
 }
