@@ -17,11 +17,11 @@ const versionName = '2.04'
       </div>
       <div class="text-xl">
         <NGradientText type="info">
-          <a href="https://github.com/liandu2024/AnGe-Panel/releases" class="font-semibold" :title="$t('apps.about.viewUpdateLog')" target="_blank">Ver: {{ versionName }}</a>
+          <a href="https://github.com/zhiwen1987/Jydn-Panel/releases" class="font-semibold" :title="$t('apps.about.viewUpdateLog')" target="_blank">Ver: {{ versionName }}</a>
         </NGradientText>
       </div>
       <div class="mt-2">
-        <a href="https://github.com/liandu2024/AnGe-Panel/releases" target="_blank" class="link">{{ $t('apps.about.checkUpdate') }}</a>
+        <a href="https://github.com/zhiwen1987/Jydn-Panel/releases" target="_blank" class="link">{{ $t('apps.about.checkUpdate') }}</a>
       </div>
     </div>
 
@@ -36,11 +36,11 @@ const versionName = '2.04'
         </div>
         <div class="flex items-center mx-[10px]">
           <img class="w-[20px] h-[20px] mr-[5px]" :src="srcTelegram" alt="">
-          <a href="https://t.me/angeworld2024" target="_blank" class="link">安格视界TG群</a>
+          <a href="https://www.kefu.me" target="_blank" class="link">进源网络</a>
         </div>
         <div class="flex items-center mx-[10px]">
           <img class="w-[20px] h-[20px] mr-[5px]" :src="srcMarket" alt="">
-          <a href="https://blog.angeworld.cc/market" target="_blank" class="link">安格超市</a>
+          <a href="https://www.kefu.me" target="_blank" class="link">进源网络</a>
         </div>
       </div>
 
