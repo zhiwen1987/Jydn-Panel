@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO="zhiwen1987/Jydn-Panel"
-APP_NAME="Jydn-panel"
+APP_NAME="jydn-panel"
 INSTALL_DIR="/opt/${APP_NAME}"
 SERVICE_FILE="/etc/systemd/system/${APP_NAME}.service"
 

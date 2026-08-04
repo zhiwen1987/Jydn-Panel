@@ -36,7 +36,8 @@ function http<T = any>(
 
     if (res.data.code === 1001) {
       // 避免重复弹窗
-      if (loginMessageShow === false) {
+      const isLoginPage = ['/', '/login'].includes(router.currentRoute.value.path)
+      if (!isLoginPage && loginMessageShow === false) {
         loginMessageShow = true
         message.warning(t('api.loginExpires'), {
         // message.warning('登录过期', {
@@ -46,7 +47,8 @@ function http<T = any>(
         })
       }
 
-      router.push({ path: '/login' })
+      if (!isLoginPage)
+        router.push({ path: '/login' })
       authStore.removeToken()
       return res.data
     }

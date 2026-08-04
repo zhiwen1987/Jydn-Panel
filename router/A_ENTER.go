@@ -40,7 +40,7 @@ func InitRouters(addr string) error {
 	sourcePath := global.Config.GetValueString("base", "source_path")
 	router.Static(sourcePath[1:], sourcePath)
 
-	global.Logger.Info("AnGe-Panel is Started.  Listening and serving HTTP on ", addr)
+	global.Logger.Info("Jydn-Panel is Started.  Listening and serving HTTP on ", addr)
 	return router.Run(addr)
 }
 

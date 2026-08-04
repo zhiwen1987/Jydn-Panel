@@ -2,7 +2,7 @@
 set -eu
 
 APP_DIR="/app"
-DATA_DIR="${ANGE_DATA_DIR:-/data}"
+DATA_DIR="${JYDN_DATA_DIR:-/data}"
 DEFAULT_CONF_DIR="${APP_DIR}/defaults/conf"
 
 # Create persistent dirs

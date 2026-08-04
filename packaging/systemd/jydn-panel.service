@@ -1,0 +1,17 @@
+[Unit]
+Description=Jydn-Panel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=jydn-panel
+Group=jydn-panel
+WorkingDirectory=/opt/jydn-panel
+ExecStart=/opt/jydn-panel/jydn-panel
+Restart=always
+RestartSec=2
+LimitNOFILE=1048576
+
+[Install]
+WantedBy=multi-user.target

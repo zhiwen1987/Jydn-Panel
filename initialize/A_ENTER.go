@@ -3,11 +3,7 @@ package initialize
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
-
-	"github.com/gin-gonic/gin"
-
 	"sun-panel/global"
 	"sun-panel/initialize/cUserToken"
 	"sun-panel/initialize/config"
@@ -21,9 +17,16 @@ import (
 	"sun-panel/lib/cmn"
 	"sun-panel/models"
 	"sun-panel/structs"
+
+	"log"
+
+	"github.com/gin-gonic/gin"
 )
 
 var DB_DRIVER = database.SQLITE
+
+// var RUNCODE = "debug"
+// var ISDOCER = "" // 是否为docker模式
 
 func InitApp() error {
 	Logo()
@@ -72,6 +75,7 @@ func InitApp() error {
 			if err != nil {
 				log.Panicln("Redis initialization error", err)
 				panic(err)
+				// return err
 			}
 			global.RedisDb = rdb
 		}
@@ -116,12 +120,15 @@ func DatabaseConnect() {
 	}
 
 	database.CreateDatabase(databaseDrive, global.Db)
+
+	// Seed uploads from template if uploads directory is missing
 	database.EnsureSeedUploads()
+
 	database.NotFoundAndCreateUser(global.Db)
 	database.NotFoundAndCreateExampleData(global.Db)
 }
 
-// CommandRun 命令行参数处理
+// 命令行运行
 func CommandRun() {
 	var (
 		cfg bool
@@ -130,16 +137,20 @@ func CommandRun() {
 
 	flag.BoolVar(&cfg, "config", false, "Generate configuration file")
 	flag.BoolVar(&pwd, "password-reset", false, "Reset the password of the first user")
+
 	flag.Parse()
 
 	if cfg {
+		// 生成配置文件
 		fmt.Println("Generating configuration file")
 		cmn.AssetsTakeFileToPath("conf.example.ini", "conf/conf.example.ini")
 		cmn.AssetsTakeFileToPath("conf.example.ini", "conf/conf.ini")
-		fmt.Println("The configuration file has been created conf/conf.ini , Please modify according to your own needs")
-		os.Exit(0)
+		fmt.Println("The configuration file has been created  conf/conf.ini ", "Please modify according to your own needs")
+		os.Exit(0) // 务必退出
 	} else if pwd {
 		// 重置密码
+
+		// 配置初始化
 		config, _ := config.ConfigInit()
 		global.Config = config
 
@@ -147,25 +158,29 @@ func CommandRun() {
 		userInfo := models.User{}
 		if err := global.Db.Where("role=?", 1).Order("id").First(&userInfo).Error; err != nil {
 			fmt.Println("ERROR", err.Error())
-			os.Exit(0)
+			os.Exit(0) // 务必退出
 		}
 
 		newPassword := "12345678"
+
 		updateInfo := models.User{
 			Password: cmn.PasswordEncryption(newPassword),
 			Token:    "",
 		}
+		// 重置第一个管理员的密码
 		if err := global.Db.Select("Password", "Token").Where("id=?", userInfo.ID).Updates(&updateInfo).Error; err != nil {
 			fmt.Println("ERROR", err.Error())
-			os.Exit(0)
+			os.Exit(0) // 务必退出
 		}
 
 		fmt.Println("The password has been successfully reset. Here is the account information")
-		fmt.Println("Username 用户名:", userInfo.Username)
-		fmt.Println("Password 密码:", newPassword)
-		os.Exit(0)
+		fmt.Println("Username ", userInfo.Username)
+		fmt.Println("Password ", newPassword)
+		os.Exit(0) // 务必退出
+	} else {
+		return
 	}
-	return
+	os.Exit(0) // 务必退出
 }
 
 func Logo() {
@@ -177,8 +192,7 @@ func Logo() {
 
 	versionInfo := cmn.GetSysVersionInfo()
 	fmt.Println("Version:", versionInfo.Version)
-	fmt.Println("版本:", versionInfo.Version)
-	fmt.Println("Welcome to Jydn-panel. 欢迎来到 Jydn-panel.")
-	fmt.Println("Project address:", "https://github.com/zhiwen1987/Jydn-panel")
-	fmt.Println("项目地址：", "https://github.com/zhiwen1987/Jydn-panel")
+	fmt.Println("Welcome to the Jydn-Panel.")
+	fmt.Println("Project address:", "https://github.com/zhiwen1987/Jydn-Panel")
+
 }

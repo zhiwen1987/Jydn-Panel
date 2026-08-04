@@ -37,8 +37,12 @@ func (a UsersApi) Create(c *gin.Context) {
 	}
 
 	param.Username = strings.TrimSpace(param.Username)
-	if len(param.Username) < 5 {
-		apiReturn.ErrorParamFomat(c, "The account must be no less than 5 characters long")
+	if len([]rune(param.Username)) < 3 || len([]rune(param.Username)) > 50 {
+		apiReturn.ErrorParamFomat(c, "账号长度必须为 3 到 50 个字符")
+		return
+	}
+	if param.Role != 1 && param.Role != 2 {
+		apiReturn.ErrorParamFomat(c, "账号角色无效")
 		return
 	}
 
@@ -54,8 +58,8 @@ func (a UsersApi) Create(c *gin.Context) {
 
 	// 验证账号是否存在
 	if _, err := mUser.CheckUsernameExist(param.Username); err != nil {
-		apiReturn.ErrorByCode(c, 1006)
-		// apiReturn.Error(c, global.Lang.Get("register.mail_exist"))
+		apiReturn.Error(c, "账号已存在")
+
 		return
 	}
 
@@ -66,7 +70,7 @@ func (a UsersApi) Create(c *gin.Context) {
 		return
 	}
 
-	apiReturn.SuccessData(c, gin.H{"userId": userInfo.ID})
+	apiReturn.SuccessData(c, gin.H{"id": userInfo.ID, "userId": userInfo.ID})
 }
 
 func (a UsersApi) Deletes(c *gin.Context) {

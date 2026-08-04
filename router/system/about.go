@@ -10,5 +10,6 @@ func InitAbout(router *gin.RouterGroup) {
 	about := api_v1.ApiGroupApp.ApiSystem.About
 	{
 		router.POST("about", about.Get)
+		router.POST("about/checkVersion", about.CheckVersion)
 	}
 }

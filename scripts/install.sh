@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_NAME="Jydn-panel"
+APP_NAME="jydn-panel"
 REPO="zhiwen1987/Jydn-Panel"
 INSTALL_DIR="/opt/${APP_NAME}"
 BIN_NAME="${APP_NAME}"
@@ -11,19 +11,19 @@ CHANNEL="release"  # reserved
 
 usage() {
   cat <<'USAGE'
-AnGe-Panel one-line installer (systemd)
+Jydn-Panel one-line installer (systemd)
 
 Usage:
-  curl -fsSL https://raw.githubusercontent.com/liandu2024/AnGe-Panel/main/scripts/install.sh | sudo bash -s -- [options]
+  curl -fsSL https://raw.githubusercontent.com/zhiwen1987/Jydn-Panel/main/scripts/install.sh | sudo bash -s -- [options]
 
 Options:
   --version vX.Y.Z   Install specific version (default: latest release)
   --port 3003        Set http port in conf/conf.ini (default: keep package default)
-  --dir /opt/ange-panel  Install directory (default: /opt/ange-panel)
+  --dir /opt/jydn-panel  Install directory (default: /opt/jydn-panel)
   --help             Show this help
 
 Notes:
-- This script installs to /opt and creates a systemd service: ange-panel.service
+- This script installs to /opt and creates a systemd service: jydn-panel.service
 - If you re-run it, it will overwrite files in the install dir.
 USAGE
 }

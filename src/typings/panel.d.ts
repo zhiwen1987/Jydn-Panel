@@ -48,6 +48,7 @@ declare namespace Panel {
         iconTextIconHideTitle?:boolean
         logoText?:string
         logoImageSrc?:string
+        faviconImageSrc?:string
         topHeaderShow?:boolean
         clockShowSecond?:boolean
         clockColor?:string
@@ -64,6 +65,8 @@ declare namespace Panel {
         netModeChangeButtonShow?:boolean
         floatingToolsPosition?: 'right-top' | 'right-middle' | 'right-bottom'
         leftCatalogShow?: boolean
+        leftCatalogLabelFixed?: boolean
+        leftCatalogSize?: number
         rightScrollBarShow?: boolean
 
         // Spacing (px)

@@ -3,11 +3,12 @@ import { ref } from 'vue'
 import type { UploadFileInfo } from 'naive-ui'
 import { NAlert, NButton, NCheckbox, NCheckboxGroup, NDivider, NInput, NSpace, NUpload, NUploadDragger, useMessage } from 'naive-ui'
 import { RoundCardModal, SvgIcon } from '@/components/common'
-import type { IconGroup, ImportJsonResult } from '@/utils/jsonImportExport'
+import type { EmbeddedAsset, EmbeddedAssetType, IconGroup, ImportJsonResult } from '@/utils/jsonImportExport'
 import { ConfigVersionLowError, FormatError, exportJson, importJsonString } from '@/utils/jsonImportExport'
 import { edit as addGroup, deletes as deleteGroups, getList as getGroupList } from '@/api/panel/itemIconGroup'
-import { addMultiple as addMultipleIcons, deletes as deleteIcons, getListByGroupId } from '@/api/panel/itemIcon'
-
+import { addMultiple as addMultipleIcons, deletes as deleteIcons, getListByGroupId, getSiteFavicon } from '@/api/panel/itemIcon'
+import { set as setUserConfig } from '@/api/panel/userConfig'
+import { useAppStore, useAuthStore, usePanelState } from '@/store'
 import { t } from '@/locales'
 
 interface ItemGroup extends Panel.ItemIconGroup {
@@ -15,6 +16,9 @@ interface ItemGroup extends Panel.ItemIconGroup {
 }
 
 const ms = useMessage()
+const authStore = useAuthStore()
+const appStore = useAppStore()
+const panelState = usePanelState()
 
 const jsonData = ref<string | null>(null)
 const importWarning = ref<string[]>([])
@@ -22,22 +26,197 @@ const importRoundModalShow = ref(false)
 const exportRoundModalShow = ref(false)
 const loading = ref(false)
 const uploadLoading = ref(false)
-const version = ref('1.00') // 当前软件版本
+const version = ref(import.meta.env.VITE_APP_VERSION || '2.04')
 const debug = ref(false)
 
-const importObj = ref<ImportJsonResult | null> (null)
+const importObj = ref<ImportJsonResult | null>(null)
+const importItems = ref<string[]>(['icons', 'style'])
+const checkedItems = ref<string[]>(['icons', 'style'])
+const importMode = ref<'append' | 'overwrite'>('append')
+let restoredAssetUrls = new Map<string, string>()
 
-const importItems = ref<string[]>(['icons']) // 当前软件版本支持导入导出的项目
-const checkedItems = ref<string[]>(['icons']) // 当前准备导入的项目
-const importMode = ref<'append' | 'overwrite'>('append') // 导入模式：追加或覆盖
-
-// 处理文件选择，根据当前模式导入
 function handleFileChangeWithMode(options: { file: UploadFileInfo; fileList: Array<UploadFileInfo> }, mode: 'append' | 'overwrite') {
   importMode.value = mode
   handleFileChange(options)
 }
 
-// 导入图标
+function fileNameFromUrl(sourceUrl: string, index: number, mimeType: string) {
+  try {
+    const pathname = new URL(sourceUrl, window.location.origin).pathname
+    const name = decodeURIComponent(pathname.split('/').pop() || '')
+    if (name.includes('.'))
+      return name
+  }
+  catch {
+    // Use generated fallback below.
+  }
+
+  const extByMime: Record<string, string> = {
+    'image/gif': '.gif',
+    'image/jpeg': '.jpg',
+    'image/png': '.png',
+    'image/svg+xml': '.svg',
+    'image/webp': '.webp',
+    'image/x-icon': '.ico',
+  }
+  return `jydn-asset-${index}${extByMime[mimeType] || '.png'}`
+}
+
+async function blobToDataUrl(blob: Blob): Promise<string> {
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result || ''))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(blob)
+  })
+}
+
+async function embedAsset(sourceUrl: string, fileType: EmbeddedAssetType, index: number): Promise<EmbeddedAsset | null> {
+  if (!sourceUrl || sourceUrl.startsWith('data:'))
+    return null
+
+  try {
+    const response = await fetch(new URL(sourceUrl, window.location.origin).toString(), { credentials: 'same-origin' })
+    if (!response.ok)
+      return null
+    const blob = await response.blob()
+    if (!blob.type.startsWith('image/'))
+      return null
+    return {
+      sourceUrl,
+      fileName: fileNameFromUrl(sourceUrl, index, blob.type),
+      fileType,
+      mimeType: blob.type,
+      dataUrl: await blobToDataUrl(blob),
+    }
+  }
+  catch {
+    // Cross-origin images can remain URL-based when CORS prevents embedding.
+    return null
+  }
+}
+
+async function collectEmbeddedAssets(groups: IconGroup[], includePanelConfig: boolean): Promise<EmbeddedAsset[]> {
+  const sources = new Map<string, EmbeddedAssetType>()
+  for (const group of groups) {
+    for (const item of group.children) {
+      const src = item.icon?.src
+      if (src)
+        sources.set(src, 'icon')
+    }
+  }
+
+  if (includePanelConfig) {
+    if (panelState.panelConfig.logoImageSrc)
+      sources.set(panelState.panelConfig.logoImageSrc, 'icon')
+    if (panelState.panelConfig.faviconImageSrc)
+      sources.set(panelState.panelConfig.faviconImageSrc, 'icon')
+    if (panelState.panelConfig.backgroundImageSrc)
+      sources.set(panelState.panelConfig.backgroundImageSrc, 'wallpaper')
+  }
+
+  const assets = await Promise.all(
+    Array.from(sources.entries()).map(([sourceUrl, fileType], index) => embedAsset(sourceUrl, fileType, index)),
+  )
+  return assets.filter((asset): asset is EmbeddedAsset => asset !== null)
+}
+
+async function uploadEmbeddedAsset(asset: EmbeddedAsset): Promise<string> {
+  const blob = await (await fetch(asset.dataUrl)).blob()
+  const formData = new FormData()
+  formData.append('imgfile', new File([blob], asset.fileName, { type: asset.mimeType || blob.type }))
+
+  const response = await fetch(`/api/file/uploadImg?fileType=${asset.fileType}`, {
+    method: 'POST',
+    headers: {
+      token: authStore.token || '',
+      lang: appStore.language,
+    },
+    body: formData,
+  })
+  const result = await response.json()
+  if (!response.ok || result.code !== 0 || !result.data?.imageUrl)
+    throw new Error(result.msg || `Unable to restore ${asset.fileName}`)
+  return result.data.imageUrl as string
+}
+
+async function restoreEmbeddedAssets() {
+  restoredAssetUrls = new Map<string, string>()
+  const assets = importObj.value?.getassets() || []
+  for (const asset of assets) {
+    try {
+      restoredAssetUrls.set(asset.sourceUrl, await uploadEmbeddedAsset(asset))
+    }
+    catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      ms.warning(`${asset.fileName}: ${message}`)
+    }
+  }
+}
+
+function restoreIcon(icon: Panel.ItemIcon | null) {
+  if (!icon)
+    return null
+  return {
+    ...icon,
+    src: icon.src ? (restoredAssetUrls.get(icon.src) || icon.src) : icon.src,
+  }
+}
+
+async function detectImportedIcon(iconElement: IconGroup['children'][number]): Promise<Panel.ItemIcon | null> {
+  const restored = restoreIcon(iconElement.icon)
+  if (restored?.src || restored?.text || !/^https?:\/\//i.test(iconElement.url || ''))
+    return restored
+
+  try {
+    const { code, data } = await getSiteFavicon<{ iconUrl?: string }>(iconElement.url)
+    if (code === 0 && data.iconUrl)
+      return { itemType: 2, src: data.iconUrl }
+  }
+  catch {
+    // Keep the imported icon when the remote site blocks favicon detection.
+  }
+  return restored
+}
+
+async function detectImportedIcons(children: IconGroup['children']): Promise<Array<Panel.ItemIcon | null>> {
+  const results: Array<Panel.ItemIcon | null> = new Array(children.length)
+  let cursor = 0
+  const workers = Array.from({ length: Math.min(4, children.length) }, async () => {
+    while (cursor < children.length) {
+      const index = cursor++
+      results[index] = await detectImportedIcon(children[index])
+    }
+  })
+  await Promise.all(workers)
+  return results
+}
+
+async function importPanelConfig() {
+  const importedConfig = importObj.value?.getPanelConfig()
+  if (!importedConfig)
+    return
+
+  const nextConfig: Panel.panelConfig = {
+    ...panelState.panelConfig,
+    ...importedConfig,
+    logoImageSrc: importedConfig.logoImageSrc
+      ? (restoredAssetUrls.get(importedConfig.logoImageSrc) || importedConfig.logoImageSrc)
+      : importedConfig.logoImageSrc,
+    faviconImageSrc: importedConfig.faviconImageSrc
+      ? (restoredAssetUrls.get(importedConfig.faviconImageSrc) || importedConfig.faviconImageSrc)
+      : importedConfig.faviconImageSrc,
+    backgroundImageSrc: importedConfig.backgroundImageSrc
+      ? (restoredAssetUrls.get(importedConfig.backgroundImageSrc) || importedConfig.backgroundImageSrc)
+      : importedConfig.backgroundImageSrc,
+  }
+  panelState.panelConfig = nextConfig
+  panelState.recordState()
+  const response = await setUserConfig({ panel: nextConfig })
+  if (response.code !== 0)
+    throw new Error(response.msg)
+}
+
 async function importIcons(): Promise<string | null> {
   const groups = importObj.value?.geticons()
   const batchSize = 50
@@ -46,12 +225,7 @@ async function importIcons(): Promise<string | null> {
   if (!groups)
     return null
 
-  // 覆盖模式：先删除现有数据
-  // 注意：后端可能强制“至少保留一个分组”，会导致删除最后一个分组失败（你看到的“请至少保留一个”就是这个）。
-  // 所以这里先创建一个临时占位分组，确保删除过程不被“最后一个”规则卡住；导入完成后再删除该临时分组。
   if (importMode.value === 'overwrite') {
-    console.log('overwrite mode: deleting existing data...')
-
     try {
       const tempRes = await addGroup<Panel.ItemIconGroup>({
         title: '__IMPORT_TEMP__',
@@ -60,278 +234,226 @@ async function importIcons(): Promise<string | null> {
       })
       if (tempRes.code === 0 && tempRes.data?.id)
         tempGroupId = tempRes.data.id as number
-    } catch (e) {
-      // ignore
+    }
+    catch {
+      // The deletion loop below will report any real failure.
     }
 
-    // 有些后端实现对“批量/顺序删除”可能存在偶发漏删（尤其是最后一个分组）。
-    // 这里做 3 轮兜底：每轮都重新拉取当前 group 列表并删除，直到为空或达到上限。
     async function deleteAllGroupsOnce() {
-      // 获取网站导航数据
       const { code: code1, data: data1 } = await getGroupList<Common.ListResponse<ItemGroup[]>>('website')
-      // 获取网页收藏数据
       const { code: code2, data: data2 } = await getGroupList<Common.ListResponse<ItemGroup[]>>('webpage')
-
       const allExistingGroups: ItemGroup[] = []
-      if (code1 === 0 && data1?.list) allExistingGroups.push(...data1.list)
-      if (code2 === 0 && data2?.list) allExistingGroups.push(...data2.list)
+      if (code1 === 0 && data1?.list)
+        allExistingGroups.push(...data1.list)
+      if (code2 === 0 && data2?.list)
+        allExistingGroups.push(...data2.list)
 
       const groupIds = allExistingGroups
-        // 不删除临时占位分组
-        .filter(g => (g.title || '') !== '__IMPORT_TEMP__')
-        .map(g => Number(g.id))
+        .filter(group => group.title !== '__IMPORT_TEMP__')
+        .map(group => Number(group.id))
         .filter(id => Number.isFinite(id) && id > 0)
 
-      if (groupIds.length === 0)
-        return 0
-
-      // 删除所有图标
-      for (const gid of groupIds) {
-        const iconRes = await getListByGroupId<Common.ListResponse<Panel.ItemInfo[]>>(gid)
-        if (iconRes.code === 0 && iconRes.data?.list) {
-          const iconIds = iconRes.data.list
-            .map(i => Number(i.id))
-            .filter(id => Number.isFinite(id) && id > 0)
-          if (iconIds.length > 0) {
-            await deleteIcons(iconIds)
-          }
-        }
+      for (const groupId of groupIds) {
+        const iconRes = await getListByGroupId<Common.ListResponse<Panel.ItemInfo[]>>(groupId)
+        const iconIds = (iconRes.code === 0 && iconRes.data?.list)
+          ? iconRes.data.list.map(item => Number(item.id)).filter(id => Number.isFinite(id) && id > 0)
+          : []
+        if (iconIds.length > 0)
+          await deleteIcons(iconIds)
       }
-
-      // 删除所有分组（逐个删除，避免后端对批量 ids 有限制）
-      for (const gid of groupIds) {
-        const res: any = await deleteGroups([gid])
-        if (res?.code !== 0) {
-          console.error('delete group failed', gid, res?.msg)
-        }
-      }
-
+      for (const groupId of groupIds)
+        await deleteGroups([groupId])
       return groupIds.length
     }
 
-    for (let round = 1; round <= 3; round++) {
-      const deletedCount = await deleteAllGroupsOnce()
-      console.log(`overwrite mode: delete round ${round}, groups=${deletedCount}`)
-      if (deletedCount === 0)
+    for (let round = 0; round < 3; round++) {
+      if (await deleteAllGroupsOnce() === 0)
         break
     }
   }
 
   try {
-    for (let i = 0; i < groups.length; i++) {
-      const element = groups[i]
-
-      // 创建组得到组id
+    for (const element of groups) {
       const createGroupResponse = await addGroup<Panel.ItemIconGroup>({
         title: element.title,
         sort: element.sort,
         groupType: element.groupType || 'website',
       })
+      if (createGroupResponse.code !== 0)
+        return createGroupResponse.msg
 
-      if (createGroupResponse.code === 0) {
-        const groupId = createGroupResponse.data?.id
+      const groupId = createGroupResponse.data?.id
+      if (!groupId)
+        continue
 
-        if (groupId) {
-          let addIcons: Panel.ItemInfo[] = []
+      const detectedIcons = element.groupType === 'webpage'
+        ? element.children.map(icon => restoreIcon(icon.icon))
+        : await detectImportedIcons(element.children)
+      let addIcons: Panel.ItemInfo[] = []
+      for (let index = 0; index < element.children.length; index++) {
+        const iconElement = element.children[index]
+        addIcons.push({
+          title: iconElement.title,
+          sort: iconElement.sort,
+          icon: detectedIcons[index],
+          url: iconElement.url,
+          lanUrl: iconElement.lanUrl,
+          description: iconElement.description,
+          openMethod: iconElement.openMethod,
+          pinned: !!iconElement.pinned,
+          itemIconGroupId: groupId,
+        })
 
-          // 批量添加子项
-          for (let iconI = 0; iconI < element.children.length; iconI++) {
-            const iconElement = element.children[iconI]
-
-            addIcons.push({
-              title: iconElement.title,
-              sort: iconElement.sort,
-              icon: iconElement.icon,
-              url: iconElement.url,
-              lanUrl: iconElement.lanUrl,
-              description: iconElement.description,
-              openMethod: iconElement.openMethod,
-              pinned: !!(iconElement as any).pinned,
-              itemIconGroupId: groupId,
-            })
-
-            // 每 batchSize 个添加一次
-            if (addIcons.length === batchSize || iconI === element.children.length - 1) {
-              const response = await addMultipleIcons(addIcons)
-
-              if (response.code !== 0)
-                return response.msg
-
-              addIcons = []
-            }
-          }
+        if (addIcons.length === batchSize || index === element.children.length - 1) {
+          const response = await addMultipleIcons(addIcons)
+          if (response.code !== 0)
+            return response.msg
+          addIcons = []
         }
       }
-      else {
-        return createGroupResponse.msg
-      }
     }
 
-    // 覆盖模式：导入完成后删除临时占位分组
-    if (importMode.value === 'overwrite' && tempGroupId) {
-      const res: any = await deleteGroups([tempGroupId])
-      if (res?.code !== 0)
-        console.error('delete temp group failed', tempGroupId, res?.msg)
-    }
-
+    if (importMode.value === 'overwrite' && tempGroupId)
+      await deleteGroups([tempGroupId])
     return null
   }
   catch (error) {
-    if (error instanceof Error)
-      return `${t('common.failed')}: ${error.message}`
-    else
-      return t('common.unknownError')
+    return error instanceof Error ? `${t('common.failed')}: ${error.message}` : t('common.unknownError')
   }
 }
 
-// 导出图标
 async function exportIcons(): Promise<IconGroup[]> {
   const iconGroups: IconGroup[] = []
+  const { code: websiteCode, data: websiteData } = await getGroupList<Common.ListResponse<ItemGroup[]>>('website')
+  const { code: webpageCode, data: webpageData } = await getGroupList<Common.ListResponse<ItemGroup[]>>('webpage')
+  const allGroups: Array<ItemGroup & { groupType: 'website' | 'webpage' }> = []
+  if (websiteCode === 0 && websiteData?.list)
+    allGroups.push(...websiteData.list.map(group => ({ ...group, groupType: 'website' as const })))
+  if (webpageCode === 0 && webpageData?.list)
+    allGroups.push(...webpageData.list.map(group => ({ ...group, groupType: 'webpage' as const })))
 
-  // 获取网站导航数据
-  const { code: code1, data: data1 } = await getGroupList<Common.ListResponse<ItemGroup[]>>('website')
-  // 获取网页收藏数据
-  const { code: code2, data: data2 } = await getGroupList<Common.ListResponse<ItemGroup[]>>('webpage')
-
-  const allGroups = []
-  if (code1 === 0 && data1?.list) {
-    allGroups.push(...data1.list.map(g => ({ ...g, groupType: 'website' as const })))
+  for (const element of allGroups) {
+    const group: IconGroup = {
+      title: element.title || '',
+      sort: element.sort || 0,
+      groupType: element.groupType,
+      children: [],
+    }
+    const response = await getListByGroupId<Common.ListResponse<Panel.ItemInfo[]>>(element.id)
+    if (response.code === 0) {
+      group.children = response.data.list.map(icon => ({
+        icon: icon.icon,
+        sort: icon.sort || 99999,
+        title: icon.title,
+        url: icon.url,
+        lanUrl: icon.lanUrl || '',
+        description: icon.description || '',
+        openMethod: icon.openMethod || 1,
+        pinned: !!icon.pinned,
+      }))
+    }
+    iconGroups.push(group)
   }
-  if (code2 === 0 && data2?.list) {
-    allGroups.push(...data2.list.map(g => ({ ...g, groupType: 'webpage' as const })))
-  }
-
-  if (allGroups.length > 0) {
-    // 使用 Promise.all 等待所有异步操作完成
-    await Promise.all(allGroups.map(async (element) => {
-      const group: IconGroup = {
-        title: element.title as string,
-        sort: element.sort as 0,
-        groupType: element.groupType,
-        children: [],
-      }
-
-      const res = await getListByGroupId<Common.ListResponse<Panel.ItemInfo[]>>(element.id)
-
-      if (res.code === 0) {
-        for (const iconElement of res.data.list) {
-          group.children.push({
-            icon: iconElement.icon,
-            sort: iconElement.sort || 99999,
-            title: iconElement.title,
-            url: iconElement.url,
-            lanUrl: iconElement.lanUrl || '',
-            description: iconElement.description || '',
-            openMethod: iconElement.openMethod || 1,
-            pinned: !!iconElement.pinned,
-          })
-        }
-      }
-
-      iconGroups.push(group)
-    }))
-
-    return iconGroups
-  }
-  else {
-    return []
-  }
+  return iconGroups
 }
 
 function handleFileChange(options: { file: UploadFileInfo; fileList: Array<UploadFileInfo> }) {
   uploadLoading.value = true
-  console.log(options.file.file)
-  if (options.file.file) {
-    const reader = new FileReader()
-    reader.onload = () => {
-      if (reader.result) {
-        jsonData.value = reader.result as string
-        importCheck()
-      }
-      else {
-        ms.error(`${t('common.failed')}: ${t('common.repeatLater')}`)
-      }
-      uploadLoading.value = false
-    }
-    reader.readAsText(options.file.file)
+  if (!options.file.file) {
+    uploadLoading.value = false
+    return
   }
-}
 
-// 验证导入文件
-function importCheck() {
-  importWarning.value = []
-  if (jsonData.value) {
-    try {
-      importObj.value = importJsonString(jsonData.value)
-      if (importObj.value) {
-        if (!importObj.value.isPassCheckMd5())
-          importWarning.value.push(t('apps.exportImport.fileModified'))
-
-        if (!importObj.value.isPassCheckConfigVersionOld())
-          importWarning.value.push(t('apps.exportImport.warnConfigFileLow'))
-
-        if (!importObj.value.isPassCheckConfigVersionNew())
-          importWarning.value.push(t('apps.exportImport.softwareVersionLow'))
-
-        // （暂时不做）此处可以判断，当前的配置文件是否存在的导入项目（不存在隐藏importItems里面的值）操作变量：importItems
-
-        // 通过了验证,打开弹窗
-        importRoundModalShow.value = !importRoundModalShow.value
-
-        // console.log(importObj.value.geticons())
-      }
+  const reader = new FileReader()
+  reader.onload = () => {
+    if (reader.result) {
+      jsonData.value = reader.result as string
+      importCheck()
     }
-    catch (error) {
-      if (error instanceof ConfigVersionLowError) {
-        ms.error(t('apps.exportImport.errorConfigFileLow'))
-        console.error('The configuration file version is too low to be compatible')
-      }
-      else if (error instanceof FormatError) {
-        ms.error(t('apps.exportImport.errorConfigFileFormat'))
-        console.error('The format is incorrect and cannot be imported')
-      }
+    else {
+      ms.error(`${t('common.failed')}: ${t('common.repeatLater')}`)
     }
+    uploadLoading.value = false
   }
-  else {
+  reader.onerror = () => {
+    uploadLoading.value = false
     ms.error(t('apps.exportImport.errorConfigFileFormat'))
   }
+  reader.readAsText(options.file.file)
 }
 
-// 开始导出
+function importCheck() {
+  importWarning.value = []
+  if (!jsonData.value) {
+    ms.error(t('apps.exportImport.errorConfigFileFormat'))
+    return
+  }
+
+  try {
+    importObj.value = importJsonString(jsonData.value)
+    if (!importObj.value)
+      return
+    if (!importObj.value.isPassCheckMd5())
+      importWarning.value.push(t('apps.exportImport.fileModified'))
+    if (!importObj.value.isPassCheckConfigVersionOld())
+      importWarning.value.push(t('apps.exportImport.warnConfigFileLow'))
+    if (!importObj.value.isPassCheckConfigVersionNew())
+      importWarning.value.push(t('apps.exportImport.softwareVersionLow'))
+    importRoundModalShow.value = true
+  }
+  catch (error) {
+    if (error instanceof ConfigVersionLowError)
+      ms.error(t('apps.exportImport.errorConfigFileLow'))
+    else if (error instanceof FormatError)
+      ms.error(t('apps.exportImport.errorConfigFileFormat'))
+  }
+}
+
 async function handleStartExport() {
   loading.value = true
-  // console.log('要导出的项目', checkedItems.value)
-  // 获取软件版本号
-  const exportResult = exportJson(version.value)
-  if (checkedItems.value.includes('icons')) {
-    console.log('export icons ...')
-    const iconGroups = await exportIcons()
-    exportResult.addIconsData(iconGroups)
-    console.log('export icons finish', iconGroups)
+  try {
+    const exportResult = exportJson(version.value)
+    const iconGroups = checkedItems.value.includes('icons') ? await exportIcons() : []
+    const includeStyle = checkedItems.value.includes('style')
+    const assets = await collectEmbeddedAssets(iconGroups, includeStyle)
+    exportResult
+      .addIconsData(iconGroups)
+      .addAssetsData(assets)
+    if (includeStyle)
+      exportResult.addPanelConfig(JSON.parse(JSON.stringify(panelState.panelConfig)))
+    jsonData.value = exportResult.string()
+    exportResult.exportFile()
+    exportRoundModalShow.value = false
+    ms.success(t('apps.exportImport.exportWithImagesSuccess', { count: assets.length }))
   }
-
-  // console.log('导出结果')
-
-  jsonData.value = exportResult.string()
-  exportResult.exportFile()
-  loading.value = false
-  exportRoundModalShow.value = false
-  // ms.success(t('common.success'))
+  catch (error) {
+    ms.error(error instanceof Error ? error.message : t('common.failed'))
+  }
+  finally {
+    loading.value = false
+  }
 }
 
-// 开始导入
 async function handleStartImport() {
   loading.value = true
-  if (checkedItems.value.includes('icons')) {
-    console.log('export icons ...')
-    const errMsg = await importIcons()
-    if (errMsg !== null)
-      ms.success(`${t('common.failed')}:${errMsg}`)
+  try {
+    await restoreEmbeddedAssets()
+    if (checkedItems.value.includes('icons')) {
+      const errorMessage = await importIcons()
+      if (errorMessage)
+        throw new Error(errorMessage)
+    }
+    if (checkedItems.value.includes('style'))
+      await importPanelConfig()
+    importRoundModalShow.value = false
+    ms.success(t('apps.exportImport.importWithImagesSuccess', { count: restoredAssetUrls.size }))
   }
-
-  loading.value = false
-  importRoundModalShow.value = false
-  ms.success(`${t('common.success')}, ${t('common.refreshPage')}`)
+  catch (error) {
+    ms.error(error instanceof Error ? error.message : t('common.failed'))
+  }
+  finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -346,7 +468,7 @@ async function handleStartImport() {
         <div class="flex flex-col md:flex-row flex-wrap gap-4 w-full">
           <!-- 追加导入：支持拖拽上传 -->
           <NUpload
-            accept=".sun-panel.json,.sunpanel.json"
+            accept=".jydn-panel.json,.sun-panel.json,.sunpanel.json"
             directory-dnd
             :default-upload="false"
             :show-file-list="false"
@@ -369,7 +491,7 @@ async function handleStartImport() {
 
           <!-- 覆盖导入：支持拖拽上传 -->
           <NUpload
-            accept=".sun-panel.json,.sunpanel.json"
+            accept=".jydn-panel.json,.sun-panel.json,.sunpanel.json"
             directory-dnd
             :default-upload="false"
             :show-file-list="false"

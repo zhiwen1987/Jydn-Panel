@@ -8,7 +8,7 @@
 # Jydn-Panel
 
 [![Github](https://img.shields.io/badge/Github-123456?logo=github&labelColor=242424)](https://github.com/zhiwen1987/Jydn-Panel)
-[![docker](https://img.shields.io/badge/docker-123456?logo=docker&logoColor=fff&labelColor=1c7aed)](https://github.com/zhiwen1987/Jydn-Panel/pkgs/container/Jydn-Panel) 
+[![docker](https://img.shields.io/badge/docker-123456?logo=docker&logoColor=fff&labelColor=1c7aed)](https://github.com/zhiwen1987/Jydn-Panel/pkgs/container/jydn-panel) 
 [![Telegram](https://img.shields.io/badge/Telegram-123456?logo=telegram&labelColor=229ED9)](https://t.me/angeworld2024)
 <br>
 
@@ -56,23 +56,23 @@ A perfect website navigation + webpage bookmarks panel.
 在支持 Docker 设备上执行以下指令：
 
 ```bash
-docker run -d --name Jydn-Panel --restart=unless-stopped \
+docker run -d --name jydn-panel --restart=unless-stopped \
   -p 3005:3005 \
-  -v /root/ange-data:/data \
-  ghcr.io/zhiwen1987/Jydn-Panel:latest
+  -v /root/jydn-data:/data \
+  ghcr.io/zhiwen1987/jydn-panel:latest
 ```
 
-> 说明：Docker 镜像只使用 `latest`。`/root/ange-data` 会持久化 `conf`、`database`、`uploads`、`runtime`，升级时保留这个目录即可无损升级。
+> 说明：Docker 镜像只使用 `latest`。`/root/jydn-data` 会持久化 `conf`、`database`、`uploads`、`runtime`，升级时保留这个目录即可无损升级。
 
 升级：
 
 ```bash
-docker pull ghcr.io/zhiwen1987/Jydn-Panel:latest
-docker stop Jydn-Panel && docker rm Jydn-Panel
-docker run -d --name Jydn-Panel --restart=unless-stopped \
+docker pull ghcr.io/zhiwen1987/jydn-panel:latest
+docker stop jydn-panel && docker rm jydn-panel
+docker run -d --name jydn-panel --restart=unless-stopped \
   -p 3005:3005 \
-  -v /root/ange-data:/data \
-  ghcr.io/zhiwen1987/Jydn-Panel:latest
+  -v /root/jydn-data:/data \
+  ghcr.io/zhiwen1987/jydn-panel:latest
 ```
 
 ## 🔐 首次登录
@@ -93,8 +93,8 @@ docker run -d --name Jydn-Panel --restart=unless-stopped \
 
 ## 🏖️ 其他
 
-- [Telegram 群](https://www.kefu.me)
-- [站点](https://www.kefu.me)
+- [Telegram 群](https://t.me/angeworld2024)
+- [安格超市](https://blog.angeworld.cc/market)
 - **芝麻开门**: [按需付费 AI 接口，官方 1/10 价格](https://ai.opendoor.sbs)
 - **超级门户**: [订阅付费 AI 接口，量大管饱的订阅制](https://ai.superdoor.top)
 ---

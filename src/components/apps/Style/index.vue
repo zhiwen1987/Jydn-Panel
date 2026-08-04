@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { UploadFileInfo } from 'naive-ui'
-import { NButton, NButtonGroup, NCard, NColorPicker, NGrid, NGridItem, NInput, NInputGroup, NPopconfirm, NSelect, NSpin, NSlider, NSwitch, NUpload, NUploadDragger, useMessage } from 'naive-ui'
+import { NButton, NButtonGroup, NCard, NColorPicker, NGrid, NGridItem, NInput, NInputGroup, NPopconfirm, NSelect, NSlider, NSpin, NSwitch, NUpload, NUploadDragger, useMessage } from 'naive-ui'
 import { getList } from '@/api/system/file'
 import { RoundCardModal } from '@/components/common'
 import { useAuthStore, usePanelState } from '@/store'
@@ -18,6 +18,42 @@ const wallpaperPickerShow = ref(false)
 const wallpaperPickerLoading = ref(false)
 const wallpaperList = ref<File.Info[]>([])
 const wallpaperCountLabel = computed(() => wallpaperList.value.length)
+
+const logoPickerShow = ref(false)
+const logoPickerLoading = ref(false)
+const logoList = ref<File.Info[]>([])
+const logoCountLabel = computed(() => logoList.value.length)
+
+async function loadLogoList() {
+  logoPickerLoading.value = true
+  try {
+    const { data } = await getList<Common.ListResponse<File.Info[]>>('icon')
+    logoList.value = data.list || []
+  }
+  finally {
+    logoPickerLoading.value = false
+  }
+}
+
+function openLogoPicker() {
+  logoPickerShow.value = true
+  if (logoList.value.length === 0)
+    loadLogoList()
+}
+
+function handlePickLogo(src: string) {
+  panelState.panelConfig.logoImageSrc = src
+  setUserConfig({ panel: panelState.panelConfig })
+  logoPickerShow.value = false
+}
+
+function handleClearLogo() {
+  panelState.panelConfig.logoImageSrc = ''
+}
+
+function handleClearFavicon() {
+  panelState.panelConfig.faviconImageSrc = ''
+}
 
 async function loadWallpaperList() {
   wallpaperPickerLoading.value = true
@@ -96,6 +132,30 @@ function handleUploadBackgroundFinish({
   return file
 }
 
+function handleUploadLogoFinish({
+  file,
+  event,
+}: {
+  file: UploadFileInfo
+  event?: ProgressEvent
+}) {
+  const res = JSON.parse((event?.target as XMLHttpRequest).response)
+  panelState.panelConfig.logoImageSrc = res.data.imageUrl
+  return file
+}
+
+function handleUploadFaviconFinish({
+  file,
+  event,
+}: {
+  file: UploadFileInfo
+  event?: ProgressEvent
+}) {
+  const res = JSON.parse((event?.target as XMLHttpRequest).response)
+  panelState.panelConfig.faviconImageSrc = res.data.imageUrl
+  return file
+}
+
 function uploadCloud() {
   setUserConfig({ panel: panelState.panelConfig }).then((res) => {
     if (res.code === 0)
@@ -127,9 +187,113 @@ function resetPanelConfig() {
           {{ $t('apps.baseSettings.textContent') }}
         </div>
         <div class="flex items-center mt-[5px]">
-          <NInput v-model:value="panelState.panelConfig.logoText" type="text" show-count :maxlength="20" placeholder="AnGe-Panel" />
+          <NInput v-model:value="panelState.panelConfig.logoText" type="text" show-count :maxlength="20" placeholder="Jydn" />
+        </div>
+
+        <div class="mt-[12px]">
+          <div class="mb-[5px]">
+            {{ $t('apps.baseSettings.logoImage') }}
+          </div>
+          <NUpload
+            action="/api/file/uploadImg?fileType=icon"
+            :show-file-list="false"
+            name="imgfile"
+            :headers="{ token: authStore.token }"
+            directory-dnd
+            @finish="handleUploadLogoFinish"
+          >
+            <NUploadDragger>
+              <div class="h-[96px] w-full border bg-slate-100 flex justify-center items-center cursor-pointer rounded-[10px] overflow-hidden">
+                <img
+                  v-if="panelState.panelConfig.logoImageSrc"
+                  :src="panelState.panelConfig.logoImageSrc"
+                  :alt="panelState.panelConfig.logoText || 'Jydn'"
+                  class="max-h-[80px] max-w-[90%] object-contain"
+                >
+                <span v-else class="text-slate-500">{{ $t('apps.baseSettings.uploadLogo') }}</span>
+              </div>
+            </NUploadDragger>
+          </NUpload>
+          <div class="flex justify-end mt-2 gap-2">
+            <NButton size="small" quaternary type="info" @click="openLogoPicker">
+              {{ $t('apps.baseSettings.chooseUploadedLogo', { count: logoCountLabel }) }}
+            </NButton>
+            <NButton v-if="panelState.panelConfig.logoImageSrc" size="small" quaternary type="error" @click="handleClearLogo">
+              {{ $t('apps.baseSettings.clearLogo') }}
+            </NButton>
+          </div>
+          <NInput
+            v-model:value="panelState.panelConfig.logoImageSrc"
+            class="mt-2"
+            type="text"
+            size="small"
+            clearable
+            :placeholder="$t('apps.baseSettings.logoImageUrl')"
+          />
+          <RoundCardModal v-model:show="logoPickerShow" style="max-width: 900px;" size="small" :title="$t('apps.baseSettings.chooseLogo')">
+            <div class="min-h-[180px]">
+              <div class="flex items-center justify-between mb-2">
+                <NButton size="small" :loading="logoPickerLoading" @click="loadLogoList">
+                  {{ $t('common.refresh') }}
+                </NButton>
+              </div>
+              <NSpin v-show="logoPickerLoading" size="small" />
+              <div v-if="!logoPickerLoading && logoList.length === 0" class="text-slate-500 text-sm">
+                {{ $t('apps.uploadsFileManager.nothingText') }}
+              </div>
+              <NGrid v-else cols="2 500:3 800:4" :x-gap="10" :y-gap="10">
+                <NGridItem v-for="(it, idx) in logoList" :key="`logo-pick-${idx}`">
+                  <button type="button" class="wall-pick-card w-full" @click="handlePickLogo(it.src)">
+                    <div class="h-[100px] flex items-center justify-center p-2">
+                      <img :src="it.src" :alt="it.fileName" class="max-h-full max-w-full object-contain">
+                    </div>
+                    <div class="wall-pick-name">{{ it.fileName }}</div>
+                  </button>
+                </NGridItem>
+              </NGrid>
+            </div>
+          </RoundCardModal>
         </div>
       </div>
+    </NCard>
+
+    <NCard style="border-radius:10px" class="mt-[10px]" size="small">
+      <div class="text-slate-500 mb-[5px] font-bold">
+        {{ $t('apps.baseSettings.favicon') }}
+      </div>
+      <NUpload
+        action="/api/file/uploadImg?fileType=icon"
+        :show-file-list="false"
+        name="imgfile"
+        :headers="{ token: authStore.token }"
+        directory-dnd
+        @finish="handleUploadFaviconFinish"
+      >
+        <NUploadDragger>
+          <div class="h-[88px] w-full border bg-slate-100 flex justify-center items-center cursor-pointer rounded-[10px] overflow-hidden">
+            <img
+              v-if="panelState.panelConfig.faviconImageSrc"
+              :src="panelState.panelConfig.faviconImageSrc"
+              :alt="$t('apps.baseSettings.favicon')"
+              class="h-[56px] w-[56px] object-contain"
+            >
+            <span v-else class="text-slate-500">{{ $t('apps.baseSettings.uploadFavicon') }}</span>
+          </div>
+        </NUploadDragger>
+      </NUpload>
+      <div class="flex justify-end mt-2">
+        <NButton v-if="panelState.panelConfig.faviconImageSrc" size="small" quaternary type="error" @click="handleClearFavicon">
+          {{ $t('apps.baseSettings.clearFavicon') }}
+        </NButton>
+      </div>
+      <NInput
+        v-model:value="panelState.panelConfig.faviconImageSrc"
+        class="mt-2"
+        type="text"
+        size="small"
+        clearable
+        :placeholder="$t('apps.baseSettings.faviconImageUrl')"
+      />
     </NCard>
 
     <NCard style="border-radius:10px" class="mt-[10px]" size="small">
@@ -312,8 +476,22 @@ function resetPanelConfig() {
 
         <NGridItem span="12 400:12">
           <div class="flex items-center mt-[10px]">
-            <span class="mr-[10px]">左侧分组目录</span>
+            <span class="mr-[10px]">{{ $t('apps.baseSettings.leftCatalog') }}</span>
             <NSwitch v-model:value="panelState.panelConfig.leftCatalogShow" />
+          </div>
+        </NGridItem>
+
+        <NGridItem v-if="panelState.panelConfig.leftCatalogShow" span="12 400:12">
+          <div class="flex items-center mt-[10px]">
+            <span class="mr-[10px]">{{ $t('apps.baseSettings.leftCatalogLabelFixed') }}</span>
+            <NSwitch v-model:value="panelState.panelConfig.leftCatalogLabelFixed" />
+          </div>
+        </NGridItem>
+
+        <NGridItem v-if="panelState.panelConfig.leftCatalogShow" span="12 400:12">
+          <div class="flex items-center mt-[10px]">
+            <span class="mr-[10px]">{{ $t('apps.baseSettings.leftCatalogSize') }} ({{ panelState.panelConfig.leftCatalogSize || 14 }}px)</span>
+            <NSlider v-model:value="panelState.panelConfig.leftCatalogSize" class="max-w-[200px]" :step="1" :min="10" :max="30" />
           </div>
         </NGridItem>
 

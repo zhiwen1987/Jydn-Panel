@@ -6,6 +6,7 @@
 	<meta content="yes" name="apple-mobile-web-app-capable"/>
 	<link rel="apple-touch-icon" href="/favicon.ico">
 	<link rel="stylesheet"  href="/custom/index.css">
+	<script>if(location.hash==='#/login')localStorage.removeItem('AUTH_TOKEN')</script>
 	<meta name="viewport"
 		content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover" />
 	<title>Jydn-Panel</title>
@@ -104,6 +105,8 @@
 	</div>
 	<script type="module" src="/src/main.ts"></script>
 	<script src="/custom/index.js"></script>
+	<script defer src="/custom/jydn-enhancements.js"></script>
+	<script defer src="/custom/jydn-admin-integration.js"></script>
 </body>
 
 </html>

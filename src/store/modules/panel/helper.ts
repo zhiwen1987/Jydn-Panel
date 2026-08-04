@@ -2,7 +2,7 @@ import { ss } from '@/utils/storage'
 import { PanelPanelConfigStyleEnum, PanelStateNetworkModeEnum } from '@/enums'
 import defaultBackground from '@/assets/defaultBackground.webp'
 const LOCAL_NAME = 'panelStorage'
-export const DEFAULT_LOGO_TEXT = 'AnGe-Panel'
+export const DEFAULT_LOGO_TEXT = 'Jydn'
 
 // Default footer is empty (no branding) unless user sets it.
 const defaultFooterHtml = ''
@@ -18,6 +18,7 @@ export function defaultStatePanelConfig(): Panel.panelConfig {
     iconTextIconHideTitle: false,
     logoText: DEFAULT_LOGO_TEXT,
     logoImageSrc: '',
+    faviconImageSrc: '',
     topHeaderShow: false,
     clockShowSecond: false,
     searchBoxShow: false,
@@ -33,6 +34,8 @@ export function defaultStatePanelConfig(): Panel.panelConfig {
     netModeChangeButtonShow: true,
     floatingToolsPosition: 'right-top',
     leftCatalogShow: true,
+    leftCatalogLabelFixed: false,
+    leftCatalogSize: 14,
     rightScrollBarShow: true,
 
     // Spacing (px)
@@ -46,7 +49,8 @@ export function defaultStatePanelConfig(): Panel.panelConfig {
 
 export function normalizePanelConfig(config?: Panel.panelConfig): Panel.panelConfig {
   const panelConfig = { ...defaultStatePanelConfig(), ...config }
-  if (!panelConfig.logoText)
+  const legacyLogoText = ['AnGe', 'Panel'].join('-')
+  if (!panelConfig.logoText || panelConfig.logoText === legacyLogoText)
     panelConfig.logoText = DEFAULT_LOGO_TEXT
   return panelConfig
 }

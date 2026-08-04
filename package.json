@@ -1,9 +1,9 @@
 {
-  "name": "Jydn-panel",
-  "version": "2.0.4",“版本”: "2.0.4",
+  "name": "jydn-panel",
+  "version": "2.0.4",
   "private": false,
   "description": "Jydn-Panel Web",
-  "author": "冰浪 <zhiwen2528@163.com>"“冰浪 <zhiwen2528@163.com>”“冰浪 <zhiwen>”“<95302870“冰浪 <zhiwen>”“<95302870@qq.com>”,@qq.com>”，“冰浪 <95302870@qq.com>”“<95302870@qq.com>”，@qq.com>”，
+  "author": "BraisedHunter <95302870@qq.com>",
   "keywords": [
     "Jydn-Panel",
     "vue"
@@ -14,10 +14,10 @@
     "build:frontend": "run-p add-version type-check build-only",
     "add-version": "node ./add-frontend-version.js",
     "preview": "vite preview",
-    "build-only": "node ./scripts/guard-frontend-build.js && vite build","仅构建": "node ./scripts/guard-frontend-build.js && vite build",
-    "type-check""类型检查": "vue-tsc --noEmit","类型检查": "vue-tsc --noEmit",
+    "build-only": "node ./scripts/guard-frontend-build.js && vite build",
+    "type-check": "vue-tsc --noEmit",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix","代码格式化并修复": "eslint . --fix",
+    "lint:fix": "eslint . --fix",
     "bootstrap": "pnpm install && pnpm run common:prepare",
     "common:cleanup": "rimraf node_modules && rimraf pnpm-lock.yaml",
     "common:prepare": "husky install"
@@ -32,7 +32,7 @@
     "naive-ui": "^2.36.0",
     "pinia": "^2.0.33",
     "vue": "^3.2.47",
-    "vue-draggable-plus": "^0.2.6","vue-draggable-plus": "^0.2.6",
+    "vue-draggable-plus": "^0.2.6",
     "vue-i18n": "^9.2.2",
     "vue-router": "^4.1.6",
     "vuedraggable": "^4.1.0"

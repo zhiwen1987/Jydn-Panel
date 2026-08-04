@@ -1,0 +1,183 @@
+package system
+
+import (
+	"bufio"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os/exec"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
+	"sun-panel/api/api_v1/common/apiReturn"
+
+	"github.com/gin-gonic/gin"
+)
+
+type DockerApi struct{}
+
+type dockerContainer struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Image  string `json:"image"`
+	State  string `json:"state"`
+	Status string `json:"status"`
+	Ports  string `json:"ports"`
+}
+
+type dockerActionRequest struct {
+	ID     string `json:"id"`
+	Action string `json:"action"`
+}
+
+type dockerLogsRequest struct {
+	ID   string `json:"id"`
+	Tail int    `json:"tail"`
+}
+
+var dockerIdentifierPattern = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$`)
+
+func runDockerCommand(timeout time.Duration, args ...string) (string, error) {
+	dockerPath, err := exec.LookPath("docker")
+	if err != nil {
+		return "", errors.New("docker command not found")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	output, err := exec.CommandContext(ctx, dockerPath, args...).CombinedOutput()
+	if ctx.Err() == context.DeadlineExceeded {
+		return "", errors.New("docker command timed out")
+	}
+	if err != nil {
+		message := strings.TrimSpace(string(output))
+		if message == "" {
+			message = err.Error()
+		}
+		return "", errors.New(message)
+	}
+	return strings.TrimSpace(string(output)), nil
+}
+
+func (a *DockerApi) Info(c *gin.Context) {
+	version, err := runDockerCommand(8*time.Second, "version", "--format", "{{.Server.Version}}")
+	if err != nil {
+		apiReturn.SuccessData(c, gin.H{
+			"available": false,
+			"message":   err.Error(),
+		})
+		return
+	}
+
+	apiReturn.SuccessData(c, gin.H{
+		"available": true,
+		"version":   version,
+	})
+}
+
+func (a *DockerApi) Containers(c *gin.Context) {
+	output, err := runDockerCommand(12*time.Second, "ps", "-a", "--no-trunc", "--format", "{{json .}}")
+	if err != nil {
+		apiReturn.Error(c, err.Error())
+		return
+	}
+
+	containers := make([]dockerContainer, 0)
+	scanner := bufio.NewScanner(strings.NewReader(output))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			continue
+		}
+		raw := map[string]string{}
+		if err := json.Unmarshal([]byte(line), &raw); err != nil {
+			apiReturn.Error(c, "unable to parse docker output")
+			return
+		}
+		containers = append(containers, dockerContainer{
+			ID:     raw["ID"],
+			Name:   raw["Names"],
+			Image:  raw["Image"],
+			State:  raw["State"],
+			Status: raw["Status"],
+			Ports:  raw["Ports"],
+		})
+	}
+	if err := scanner.Err(); err != nil {
+		apiReturn.Error(c, err.Error())
+		return
+	}
+
+	apiReturn.SuccessListData(c, containers, int64(len(containers)))
+}
+
+func (a *DockerApi) Action(c *gin.Context) {
+	request := dockerActionRequest{}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		apiReturn.ErrorParamFomat(c, err.Error())
+		return
+	}
+
+	request.ID = strings.TrimSpace(request.ID)
+	request.Action = strings.ToLower(strings.TrimSpace(request.Action))
+	if !dockerIdentifierPattern.MatchString(request.ID) {
+		apiReturn.Error(c, "invalid container identifier")
+		return
+	}
+
+	allowedActions := map[string]time.Duration{
+		"start":   30 * time.Second,
+		"stop":    45 * time.Second,
+		"restart": 45 * time.Second,
+		"pause":   20 * time.Second,
+		"unpause": 20 * time.Second,
+		"kill":    20 * time.Second,
+		"remove":  30 * time.Second,
+	}
+	timeout, allowed := allowedActions[request.Action]
+	if !allowed {
+		apiReturn.Error(c, "unsupported docker action")
+		return
+	}
+
+	command := request.Action
+	if request.Action == "remove" {
+		command = "rm"
+	}
+	if _, err := runDockerCommand(timeout, command, request.ID); err != nil {
+		apiReturn.Error(c, err.Error())
+		return
+	}
+	apiReturn.Success(c)
+}
+
+func (a *DockerApi) Logs(c *gin.Context) {
+	request := dockerLogsRequest{Tail: 200}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		apiReturn.ErrorParamFomat(c, err.Error())
+		return
+	}
+
+	request.ID = strings.TrimSpace(request.ID)
+	if !dockerIdentifierPattern.MatchString(request.ID) {
+		apiReturn.Error(c, "invalid container identifier")
+		return
+	}
+	if request.Tail < 20 {
+		request.Tail = 20
+	}
+	if request.Tail > 1000 {
+		request.Tail = 1000
+	}
+
+	output, err := runDockerCommand(15*time.Second, "logs", "--tail", strconv.Itoa(request.Tail), request.ID)
+	if err != nil {
+		apiReturn.Error(c, fmt.Sprintf("unable to read logs: %s", err.Error()))
+		return
+	}
+	apiReturn.SuccessData(c, gin.H{"logs": output})
+}

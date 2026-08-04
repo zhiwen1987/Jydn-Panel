@@ -8,7 +8,7 @@
 # Jydn-Panel
 
 [![Github](https://img.shields.io/badge/Github-123456?logo=github&labelColor=242424)](https://github.com/zhiwen1987/Jydn-Panel)
-[![docker](https://img.shields.io/badge/docker-123456?logo=docker&logoColor=fff&labelColor=1c7aed)](https://github.com/zhiwen1987/Jydn-Panel/pkgs/container/Jydn-Panel) 
+[![docker](https://img.shields.io/badge/docker-123456?logo=docker&logoColor=fff&labelColor=1c7aed)](https://github.com/zhiwen1987/Jydn-Panel/pkgs/container/jydn-panel) 
 [![Telegram](https://img.shields.io/badge/Telegram-123456?logo=telegram&labelColor=229ED9)](https://t.me/angeworld2024)
 <br>
 
@@ -52,23 +52,23 @@ A perfect website navigation + webpage bookmarks panel.
 ## 🐳 Docker Deployment (Recommended)
 
 ```bash
-docker run -d --name Jydn-Panel --restart=unless-stopped \
+docker run -d --name jydn-panel --restart=unless-stopped \
   -p 3005:3005 \
-  -v /root/ange-data:/data \
-  ghcr.io/zhiwen1987/Jydn-Panel:latest
+  -v /root/jydn-data:/data \
+  ghcr.io/zhiwen1987/jydn-panel:latest
 ```
 
-> Note: Only use the `latest` Docker image. `/root/ange-data` persists `conf`, `database`, `uploads`, and `runtime`. Keep this directory when upgrading.
+> Note: Only use the `latest` Docker image. `/root/jydn-data` persists `conf`, `database`, `uploads`, and `runtime`. Keep this directory when upgrading.
 
 Upgrade:
 
 ```bash
-docker pull ghcr.io/zhiwen1987/Jydn-Panel:latest
-docker stop Jydn-Panel && docker rm Jydn-Panel
-docker run -d --name Jydn-Panel --restart=unless-stopped \
+docker pull ghcr.io/zhiwen1987/jydn-panel:latest
+docker stop jydn-panel && docker rm jydn-panel
+docker run -d --name jydn-panel --restart=unless-stopped \
   -p 3005:3005 \
-  -v /root/ange-data:/data \
-  ghcr.io/zhiwen1987/Jydn-Panel:latest
+  -v /root/jydn-data:/data \
+  ghcr.io/zhiwen1987/jydn-panel:latest
 ```
 
 ## 🔐 First Login
@@ -88,8 +88,8 @@ On first startup, sample groups and example website/webpage links will be create
 
 ## 🏖️ Community
 
-- [Telegram Group](https://www.kefu.me)
-- [Jydn Market](https://www.kefu.me)
+- [Telegram Group](https://t.me/angeworld2024)
+- [AnGe Market](https://blog.angeworld.cc/market)
 - **芝麻开门**: [按需付费 AI 接口，官方 1/10 价格](https://ai.opendoor.sbs)
 - **超级门户**: [订阅付费 AI 接口，量大管饱的订阅制](https://ai.superdoor.top)
 ---

@@ -2,7 +2,7 @@
 
 ## Project Shape
 
-AnGe-Panel is a single-repository Go + Vue application.
+Jydn-Panel is a single-repository Go + Vue application.
 
 - Backend: Go module `sun-panel`, Gin, Gorm, SQLite/MySQL, sources at the repository root (`main.go`, `api/`, `router/`, `initialize/`, `models/`, `lib/`, `global/`, `structs/`).
 - Frontend: Vue 3 + Vite + TypeScript + Pinia + Naive UI under `src/`.
@@ -18,7 +18,7 @@ AnGe-Panel is a single-repository Go + Vue application.
   - `seed/database/database.db`
   - `seed/uploads/**`
   - `dist/**`
-  - executable `ange-panel`
+  - executable `jydn-panel`
 - Do not overwrite user data paths (`database/`, `uploads/`, `conf/conf.ini`, `runtime/`) during development or migration work.
 - `conf/conf.example.ini` is the source template for generated config; keep it in sync when adding config keys.
 
@@ -82,7 +82,7 @@ Notes:
 
 - Dockerfile builds the Go binary in the repository root and copies committed `dist/` into `/app/web`.
 - Docker entrypoint initializes `/data/{conf,database,uploads,runtime}` and symlinks `/app/{conf,database,uploads,runtime}` to those persistent paths.
-- GitHub release workflow verifies `dist/index.html`, copies `dist/*` to `web/`, builds `ange-panel`, and packages `conf/` plus `web/`.
+- GitHub release workflow verifies `dist/index.html`, copies `dist/*` to `web/`, builds `jydn-panel`, and packages `conf/` plus `web/`.
 - Docker deployment defaults to port `3005` and persists `/data/{conf,database,uploads,runtime}` for lossless upgrades.
 - When a release version needs to change, increment the second decimal directly in order, for example `1.01` to `1.02` to `1.03`; do not create patch-style versions such as `1.00.1`.
 
