@@ -26,7 +26,7 @@ const importRoundModalShow = ref(false)
 const exportRoundModalShow = ref(false)
 const loading = ref(false)
 const uploadLoading = ref(false)
-const version = ref(import.meta.env.VITE_APP_VERSION || '1.00')
+const version = ref(import.meta.env.VITE_APP_VERSION || '1.01')
 const debug = ref(false)
 
 const importObj = ref<ImportJsonResult | null>(null)
