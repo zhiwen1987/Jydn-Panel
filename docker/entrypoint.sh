@@ -4,6 +4,7 @@ set -eu
 APP_DIR="/app"
 DATA_DIR="${ANGE_DATA_DIR:-/data}"
 DEFAULT_CONF_DIR="${APP_DIR}/defaults/conf"
+CONF_FILE="${DATA_DIR}/conf/conf.ini"
 
 # Create persistent dirs
 mkdir -p "${DATA_DIR}/conf" "${DATA_DIR}/database" "${DATA_DIR}/uploads" "${DATA_DIR}/runtime/temp"
@@ -18,6 +19,16 @@ if [ -z "$(ls -A "${DATA_DIR}/conf" 2>/dev/null || true)" ]; then
   fi
 fi
 
+# Existing Docker volumes keep their old conf.ini across image upgrades. Migrate
+# only the legacy 3005 default so custom ports remain untouched.
+if [ -f "${CONF_FILE}" ]; then
+  if grep -Eq '^[[:space:]]*http_port[[:space:]]*=[[:space:]]*3005[[:space:]]*$' "${CONF_FILE}"; then
+    sed -i -E 's/^[[:space:]]*http_port[[:space:]]*=.*$/http_port=8008/' "${CONF_FILE}"
+    echo "Migrated Docker internal HTTP port from 3005 to 8008"
+  elif ! grep -Eq '^[[:space:]]*http_port[[:space:]]*=' "${CONF_FILE}"; then
+    printf '\nhttp_port=8008\n' >> "${CONF_FILE}"
+  fi
+fi
 # 2) database
 if [ ! -f "${DATA_DIR}/database/database.db" ]; then
   if [ -f "${APP_DIR}/seed/database/database.db" ]; then
