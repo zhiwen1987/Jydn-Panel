@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const zlib = require('zlib')
 
 const root = path.resolve(__dirname, '..')
 const versionPath = path.join(root, 'VERSION')
@@ -29,6 +30,16 @@ function replaceRequired(relativePath, pattern, replacement) {
   write(relativePath, content.replace(pattern, replacement))
 }
 
+function syncEmbeddedVersion(content) {
+  const compressed = zlib.gzipSync(Buffer.from(content, 'utf8'), { level: 9, mtime: 0 })
+  const escaped = Array.from(compressed, byte => '\\x' + byte.toString(16).padStart(2, '0')).join('')
+  replaceRequired(
+    'assets/bindata.go',
+    /var _assetsVersion = \[\]byte\(".*?"\)/,
+    'var _assetsVersion = []byte("' + escaped + '")',
+  )
+  replaceRequired('assets/bindata.go', /(func assetsVersion\(\)[\s\S]*?bindataFileInfo\{name: "assets\/version", size: )\d+/, '$1' + Buffer.byteLength(content))
+}
 const oldVersionMatch = read('assets/version').trim().match(/^\d+\|(.+)$/)
 if (!oldVersionMatch)
   throw new Error('Invalid assets/version format')
@@ -44,7 +55,9 @@ write('.env', env)
 for (const file of ['assets/lang/en-us.ini', 'assets/lang/zh-cn.ini', 'lang/en-us.ini', 'lang/zh-cn.ini'])
   replaceRequired(file, /^version=.*$/m, `version=${version}`)
 
-write('assets/version', `${versionCode}|${version}\n`)
+const versionContent = `${versionCode}|${version}\n`
+write('assets/version', versionContent)
+syncEmbeddedVersion(versionContent)
 replaceRequired('package.json', /"version":\s*"[^"]+"/, `"version": "${npmVersion}"`)
 replaceRequired('src/components/apps/About/index.vue', /const versionName = '[^']+'/, `const versionName = '${version}'`)
 replaceRequired('src/components/apps/ImportExport/index.vue', /VITE_APP_VERSION \|\| '[^']+'/, `VITE_APP_VERSION || '${version}'`)
