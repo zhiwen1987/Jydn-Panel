@@ -32,6 +32,8 @@
 #jydn-docker-trigger{display:none!important}.jydn-catalog-toggle{width:10px;height:10px;min-width:10px;flex:0 0 10px;padding:0;margin:0 auto 4px;border:1px solid #ffffffe6;border-radius:999px;background:#facc15;font-size:0;cursor:pointer;box-shadow:0 0 0 2px #0f172a33}.jydn-catalog-toggle:hover{background:#fde047;box-shadow:0 0 0 3px #facc1547}.left-catalog{display:flex!important;flex-direction:column}.left-catalog .left-catalog-track{flex:1}.left-catalog.jydn-catalog-label-fixed .catalog-label{opacity:1!important;color:#fef08a!important}
 .jydn-plugin-entry>div{background:#fff;padding:10px;border-radius:8px;margin-bottom:5px;font-weight:700;cursor:pointer;display:flex;gap:8px;align-items:center}.dark .jydn-plugin-entry>div{background:#27272a}.jydn-about-logo{display:block;width:88px;height:88px;object-fit:contain;margin:6px auto 12px;border-radius:18px}
 .jydn-admin-overlay{position:fixed;inset:0;z-index:10020;background:#0f172ad9;padding:20px;display:flex;align-items:center;justify-content:center}.jydn-admin-panel{width:min(1180px,97vw);height:min(780px,94vh);overflow:auto;background:#f8fafc;color:#0f172a;border-radius:14px;padding:18px;box-shadow:0 24px 80px #0008}.jydn-admin-panel.jydn-admin-embedded{width:100%;max-width:100%;height:100%;max-height:100%;min-width:0;box-sizing:border-box;overflow:auto;box-shadow:none;border-radius:12px;padding:16px;contain:layout paint}.jydn-admin-embedded .jydn-table{display:block;width:100%;max-width:100%;overflow-x:auto;white-space:nowrap}.jydn-admin-embedded .jydn-tabs{max-width:100%;overflow-x:auto;flex-wrap:nowrap}.dark .jydn-admin-panel{background:#18181b;color:#f8fafc}.jydn-admin-head,.jydn-toolbar,.jydn-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.jydn-admin-head{justify-content:space-between;margin-bottom:14px}.jydn-admin-head h2{margin:0}.jydn-admin-panel button{padding:7px 11px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;color:#1e293b;cursor:pointer}.dark .jydn-admin-panel button{background:#27272a;color:#f8fafc;border-color:#52525b}.jydn-admin-panel button.primary{background:#2563eb;color:#fff;border-color:#2563eb}.jydn-admin-panel button.danger{background:#dc2626;color:#fff;border-color:#dc2626}.jydn-admin-panel input,.jydn-admin-panel select{padding:7px 9px;border:1px solid #cbd5e1;border-radius:7px;background:transparent;color:inherit}.jydn-tabs{display:flex;gap:6px;border-bottom:1px solid #cbd5e1;margin-bottom:14px}.jydn-tabs button{border:0;border-radius:7px 7px 0 0}.jydn-tabs button.active{background:#2563eb;color:#fff}.jydn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}.jydn-card{padding:13px;border:1px solid #cbd5e1;border-radius:10px;background:#fff}.dark .jydn-card{background:#27272a;border-color:#3f3f46}.jydn-card b{display:block;font-size:22px;margin-top:4px}.jydn-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}.jydn-table th,.jydn-table td{text-align:left;padding:8px;border-bottom:1px solid #cbd5e1;vertical-align:top}.jydn-code{white-space:pre-wrap;word-break:break-all;max-height:56vh;overflow:auto;background:#0f172a;color:#e2e8f0;padding:12px;border-radius:9px}.jydn-plugin-card{display:flex;gap:14px;align-items:center;padding:16px;border:1px solid #cbd5e1;border-radius:12px}.jydn-plugin-icon{font-size:36px}.jydn-grow{flex:1}.jydn-toast{position:fixed;right:22px;top:22px;z-index:10050;background:#16a34a;color:#fff;padding:10px 16px;border-radius:8px}.jydn-toast.bad{background:#dc2626}.jydn-admin-overlay.confirm{z-index:10040}.jydn-confirm{width:min(380px,90vw);background:#fff;color:#111827;border-radius:12px;padding:18px}.jydn-confirm .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.jydn-muted{opacity:.62;font-size:12px}`; document.head.appendChild(style)
+    style.textContent += `
+.jydn-about-page{--about-green:#0aa45a;--about-border:#d9e0e8;--about-muted:#667085;max-width:900px;margin:0 auto;padding:4px 8px 8px;box-sizing:border-box}.jydn-about-hero{text-align:center;padding:0 0 16px}.jydn-about-hero img{width:84px;height:84px;object-fit:contain}.jydn-about-hero h1{margin:2px 0 6px;font-size:34px}.jydn-about-version{display:inline-flex;padding:2px 10px;color:var(--about-green);border:1px solid var(--about-green);border-radius:99px}.jydn-about-tagline{margin:12px 0 0;color:var(--about-muted)}.jydn-about-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.jydn-about-card{overflow:hidden;border:1px solid var(--about-border);border-radius:10px;background:#fff}.dark .jydn-about-card{background:#27272a;border-color:#3f3f46}.jydn-about-card h3{margin:0;padding:12px 16px;border-bottom:1px solid var(--about-border);font-size:16px}.jydn-about-rows{padding:0 16px}.jydn-about-row{min-height:46px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:1px solid #edf0f4}.jydn-about-row:last-child{border:0}.jydn-about-row span{color:var(--about-muted)}.jydn-about-row a{overflow:hidden;color:#0784ff;text-overflow:ellipsis;white-space:nowrap}.jydn-version-state{min-height:139px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}.jydn-version-mark{width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:var(--about-green);border:1.5px solid;border-radius:50%;font-size:28px}.jydn-version-state strong{color:var(--about-green)}.jydn-version-state.error .jydn-version-mark,.jydn-version-state.error strong{color:#d03050}.jydn-about-support{margin-top:18px}.jydn-about-links{padding:0 16px}.jydn-about-links a{min-height:47px;display:grid;grid-template-columns:minmax(0,1fr) auto 16px;align-items:center;gap:10px;color:inherit;border-bottom:1px solid #edf0f4;text-decoration:none}.jydn-about-links a:last-child{border:0}.jydn-about-links a:hover{color:var(--about-green)}.jydn-about-links em{color:var(--about-muted);font-style:normal}.jydn-about-footer{padding:22px 0 2px;color:#8792a4;text-align:center}.jydn-about-footer a{color:#0784ff;text-decoration:none}@media(max-width:760px){.jydn-about-grid{grid-template-columns:1fr}.jydn-about-page{padding:0}.jydn-about-hero img{width:68px;height:68px}.jydn-about-links em{max-width:150px;overflow:hidden;text-overflow:ellipsis}}`
   }
   function panelConfig() { return stored('panelStorage').panelConfig || {} }
   function savePanel(config) {
@@ -48,6 +50,7 @@
   function enhanceAbout() {
     const modal = q('.app-starter-modal-content'); if (!modal) return
     const content = q('.n-layout-content', modal) || modal
+    if (q('.jydn-about-page', content)) return
     const marker = qa('*', content).find(node => node.children.length === 0 && /版本|Version|SUPERDOOR|OPENDOOR/.test(node.textContent || ''))
     if (!marker) return
     qa('img', content).forEach(image => image.remove())
@@ -55,6 +58,46 @@
       if (/github|安格视界|TG群|安格超市|superdoor|opendoor/i.test(`${anchor.textContent} ${anchor.href}`)) anchor.remove()
     })
     qa('.jydn-about-logo', content).forEach(node => node.remove())
+  }
+  async function aboutApi(path) {
+    const response = await fetch(`/api/${path}`, { method: 'POST', headers: { ...auth(), 'Content-Type': 'application/json' }, body: '{}' })
+    const result = await response.json()
+    if (!response.ok || result.code !== 0) throw new Error(result.msg || '请求失败')
+    return result.data || {}
+  }
+  function showAbout(mount) {
+    const { panel, head } = contentPanel(mount, '关于')
+    head.remove()
+    const page = document.createElement('div'); page.className = 'jydn-about-page'
+    page.innerHTML = `
+      <header class="jydn-about-hero"><img src="/api/about/siteFavicon?v=${Date.now()}" alt="Jydn-Panel Logo"><h1>Jydn-Panel</h1><span class="jydn-about-version">v1.01</span><p class="jydn-about-tagline">简洁、安全、可扩展的导航与系统管理面板</p></header>
+      <div class="jydn-about-grid">
+        <section class="jydn-about-card"><h3>▣ 项目信息</h3><div class="jydn-about-rows"><div class="jydn-about-row"><span>项目地址</span><a href="https://github.com/zhiwen1987/Jydn-Panel" target="_blank" rel="noopener noreferrer">github.com/zhiwen1987/Jydn-Panel ↗</a></div><div class="jydn-about-row"><span>当前版本</span><b data-about-current>v1.01</b></div><div class="jydn-about-row"><span>运行端口</span><b>8008</b></div></div></section>
+        <section class="jydn-about-card"><h3>♢ 版本状态</h3><div class="jydn-version-state"><span class="jydn-version-mark" data-about-mark>…</span><strong data-about-status>正在检查新版本</strong><button type="button" class="primary" data-about-check>检查更新</button></div></section>
+      </div>
+      <section class="jydn-about-card jydn-about-support"><h3>♡ 开源与支持</h3><nav class="jydn-about-links"><a href="https://github.com/zhiwen1987/Jydn-Panel" target="_blank" rel="noopener noreferrer"><span>◉ GitHub 项目主页</span><i>›</i></a><a href="https://github.com/zhiwen1987/Jydn-Panel/releases" target="_blank" rel="noopener noreferrer"><span>▣ 更新日志</span><i>›</i></a><a href="https://wpa.qq.com/msgrd?v=3&amp;uin=156701818&amp;site=qq&amp;menu=yes" target="_blank" rel="noopener noreferrer"><span>♧ QQ 客服</span><em>156701818</em><i>›</i></a><a href="https://www.kefu.me" target="_blank" rel="noopener noreferrer"><span>◎ 官方网站</span><em>https://www.kefu.me</em><i>›</i></a></nav></section>
+      <footer class="jydn-about-footer">Powered By <a href="https://github.com/zhiwen1987/Jydn-Panel" target="_blank" rel="noopener noreferrer">Jydn-Panel</a></footer>`
+    panel.appendChild(page)
+    const versionNodes = qa('[data-about-current], .jydn-about-version', page)
+    const state = q('.jydn-version-state', page); const mark = q('[data-about-mark]', page); const status = q('[data-about-status]', page); const check = q('[data-about-check]', page)
+    const setVersion = value => versionNodes.forEach(node => { node.textContent = `v${String(value || '1.01').replace(/^v/i, '')}` })
+    const checkVersion = async (showError = false) => {
+      state.classList.remove('error'); mark.textContent = '…'; status.textContent = '正在检查新版本'; check.disabled = true
+      try {
+        const data = await aboutApi('about/checkVersion'); setVersion(data.currentVersion)
+        mark.textContent = data.hasUpdate ? '↑' : '✓'
+        status.textContent = data.hasUpdate ? `发现新版本 v${String(data.latestVersion).replace(/^v/i, '')}` : '当前已是最新版本'
+        if (data.hasUpdate && data.releaseUrl) check.onclick = () => window.open(data.releaseUrl, '_blank', 'noopener,noreferrer')
+      }
+      catch (error) {
+        state.classList.add('error'); mark.textContent = '!'; status.textContent = '版本检查失败'
+        if (showError) notify(`GitHub 版本检查失败：${error.message || error}`, true)
+      }
+      finally { check.disabled = false }
+    }
+    check.addEventListener('click', () => checkVersion(true))
+    aboutApi('about').then(data => setVersion(data.versionName)).catch(() => {})
+    checkVersion(false)
   }
   function systemContent(modal) { return modal && (q('.n-layout-content .n-layout-scroll-container', modal) || q('.n-layout-content', modal)) }
   function reorderSystemMenu(list) {
@@ -78,8 +121,12 @@
     if (!list.dataset.jydnPluginRestoreBound) {
       list.dataset.jydnPluginRestoreBound = '1'
       list.addEventListener('click', event => {
-        if (event.target instanceof Element && !event.target.closest('.jydn-plugin-entry'))
-          restoreSystemApps(systemContent(modal))
+        if (!(event.target instanceof Element) || event.target.closest('.jydn-plugin-entry')) return
+        const label = event.target.closest('div')?.textContent || event.target.textContent || ''
+        const mount = systemContent(modal)
+        restoreSystemApps(mount)
+        if (/关于|About/i.test(label))
+          setTimeout(() => showAbout(mount))
       }, true)
     }
   }  function basePanel(title) {

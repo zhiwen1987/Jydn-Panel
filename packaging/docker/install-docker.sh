@@ -21,7 +21,11 @@ ARGS=(
   -v "$DATA_DIR:/data"
 )
 if [[ "$MOUNT_SOCKET" == "yes" || "$MOUNT_SOCKET" == "true" || "$MOUNT_SOCKET" == "1" ]]; then
-  [[ -S /var/run/docker.sock ]] && ARGS+=(-v /var/run/docker.sock:/var/run/docker.sock)
+  if [[ ! -S /var/run/docker.sock ]]; then
+    echo "未找到 /var/run/docker.sock，请先启动宿主机 Docker 服务，或设置 JYDN_DOCKER_SOCKET=no 禁用 Docker 管理" >&2
+    exit 1
+  fi
+  ARGS+=(-v /var/run/docker.sock:/var/run/docker.sock)
 fi
 ARGS+=("$IMAGE")
 docker "${ARGS[@]}"

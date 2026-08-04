@@ -2,6 +2,7 @@ package system
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -49,14 +50,25 @@ func runDockerCommand(timeout time.Duration, args ...string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	output, err := exec.CommandContext(ctx, dockerPath, args...).CombinedOutput()
+	command := exec.CommandContext(ctx, dockerPath, args...)
+	var stderr bytes.Buffer
+	command.Stderr = &stderr
+	output, err := command.Output()
 	if ctx.Err() == context.DeadlineExceeded {
 		return "", errors.New("docker command timed out")
 	}
 	if err != nil {
-		message := strings.TrimSpace(string(output))
+		message := strings.TrimSpace(stderr.String())
 		if message == "" {
 			message = err.Error()
+		}
+		lowerMessage := strings.ToLower(message)
+		switch {
+		case strings.Contains(lowerMessage, "permission denied") && strings.Contains(lowerMessage, "docker.sock"):
+			message = "无权访问 Docker Socket（/var/run/docker.sock），请将 Jydn-Panel 服务用户加入 docker 组并重启服务"
+		case strings.Contains(lowerMessage, "cannot connect to the docker daemon"),
+			strings.Contains(lowerMessage, "failed to connect to the docker api"):
+			message = "无法连接 Docker 守护进程，请确认 Docker 服务已启动；容器部署还需挂载 /var/run/docker.sock"
 		}
 		return "", errors.New(message)
 	}
@@ -93,18 +105,25 @@ func (a *DockerApi) Containers(c *gin.Context) {
 		if line == "" {
 			continue
 		}
-		raw := map[string]string{}
+		raw := struct {
+			ID     string `json:"ID"`
+			Name   string `json:"Names"`
+			Image  string `json:"Image"`
+			State  string `json:"State"`
+			Status string `json:"Status"`
+			Ports  string `json:"Ports"`
+		}{}
 		if err := json.Unmarshal([]byte(line), &raw); err != nil {
 			apiReturn.Error(c, "unable to parse docker output")
 			return
 		}
 		containers = append(containers, dockerContainer{
-			ID:     raw["ID"],
-			Name:   raw["Names"],
-			Image:  raw["Image"],
-			State:  raw["State"],
-			Status: raw["Status"],
-			Ports:  raw["Ports"],
+			ID:     raw.ID,
+			Name:   raw.Name,
+			Image:  raw.Image,
+			State:  raw.State,
+			Status: raw.Status,
+			Ports:  raw.Ports,
 		})
 	}
 	if err := scanner.Err(); err != nil {

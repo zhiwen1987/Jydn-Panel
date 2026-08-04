@@ -4,6 +4,7 @@ services:
     container_name: jydn-panel
     volumes:
       - ./data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "8008:8008"
     restart: unless-stopped
