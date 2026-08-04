@@ -229,6 +229,7 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: "1"
           CC: musl-gcc
+          CGO_CFLAGS: "-D_LARGEFILE64_SOURCE"
         run: |
           set -euo pipefail
           mkdir -p build

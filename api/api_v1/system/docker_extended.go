@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"sun-panel/api/api_v1/common/apiReturn"
@@ -98,10 +97,9 @@ func readHostMetrics() gin.H {
 		metrics["memoryAvailable"] = values["MemAvailable"]
 	}
 
-	var stat syscall.Statfs_t
-	if err := syscall.Statfs("/", &stat); err == nil {
-		metrics["diskTotal"] = stat.Blocks * uint64(stat.Bsize)
-		metrics["diskFree"] = stat.Bavail * uint64(stat.Bsize)
+	if total, free, ok := readDiskUsage(); ok {
+		metrics["diskTotal"] = total
+		metrics["diskFree"] = free
 	}
 
 	var rxBytes uint64
