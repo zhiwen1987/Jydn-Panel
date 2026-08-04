@@ -19,13 +19,15 @@ if [ -z "$(ls -A "${DATA_DIR}/conf" 2>/dev/null || true)" ]; then
   fi
 fi
 
-# Existing Docker volumes keep their old conf.ini across image upgrades. Migrate
-# only the legacy 3005 default so custom ports remain untouched.
+# Docker always listens on 8008 inside the container. The host-side port remains
+# configurable through the Docker -p HOST_PORT:8008 mapping.
 if [ -f "${CONF_FILE}" ]; then
-  if grep -Eq '^[[:space:]]*http_port[[:space:]]*=[[:space:]]*3005[[:space:]]*$' "${CONF_FILE}"; then
+  if grep -Eq '^[[:space:]]*http_port[[:space:]]*=' "${CONF_FILE}"; then
+    if ! grep -Eq '^[[:space:]]*http_port[[:space:]]*=[[:space:]]*8008[[:space:]]*$' "${CONF_FILE}"; then
+      echo "Set Docker internal HTTP port to 8008"
+    fi
     sed -i -E 's/^[[:space:]]*http_port[[:space:]]*=.*$/http_port=8008/' "${CONF_FILE}"
-    echo "Migrated Docker internal HTTP port from 3005 to 8008"
-  elif ! grep -Eq '^[[:space:]]*http_port[[:space:]]*=' "${CONF_FILE}"; then
+  else
     printf '\nhttp_port=8008\n' >> "${CONF_FILE}"
   fi
 fi
