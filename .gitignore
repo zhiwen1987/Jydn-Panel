@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 .DS_Store
+dist
 dist-ssr
 coverage
 *.local
@@ -52,10 +53,7 @@ service/database/
 service/web/
 
 # runtime data (keep seed/ tracked)
+/conf/github.env
 /database/
 uploads/*
 !uploads/.gitkeep
-/conf/conf.ini
-/runtime/
-/jydn-panel
-/*.tar.gz

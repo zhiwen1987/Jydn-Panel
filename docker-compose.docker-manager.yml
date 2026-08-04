@@ -1,9 +1,0 @@
-# Optional Docker manager access.
-# This intentionally is not part of the default compose file because access to
-# docker.sock is equivalent to host-level administration.
-# Enable explicitly:
-#   docker compose -f docker-compose.yml -f docker-compose.docker-manager.yml up -d
-services:
-  jydn-panel:
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock

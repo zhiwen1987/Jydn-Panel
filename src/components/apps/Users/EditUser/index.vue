@@ -15,7 +15,6 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<Emit>()
 const message = useMessage()
-const saving = ref(false)
 
 interface Emit {
   (e: 'update:visible', visible: boolean): void
@@ -78,38 +77,19 @@ const show = computed({
 
 watch(show, (newValue, oldValue) => {
   if (props.userInfo?.id)
-    model.value = { ...props.userInfo }
+    model.value = props.userInfo || {}
 
   else
-    model.value = { ...formInitValue }
+    model.value = formInitValue
 })
 
 const add = async () => {
-  if ((model.value.username || '').trim().length < 3) {
-    message.warning('账号长度不能少于 3 个字符')
-    return
-  }
-  if (!props.userInfo?.id && !model.value.password) {
-    message.warning('新增账号时必须填写密码')
-    return
-  }
+  const res = await userManageEdit<User.Info>(model.value)
+  if (res.code === 0)
+    emit('done', res.data.id as number)
 
-  saving.value = true
-  try {
-    const res = await userManageEdit<User.Info & { userId?: number }>(model.value)
-    if (res.code === 0) {
-      const id = res.data?.id || res.data?.userId
-      emit('done', Number(id || 0))
-      return
-    }
-    message.warning(res.msg || t('common.failed'))
-  }
-  catch (error) {
-    message.error(error instanceof Error ? error.message : String(error))
-  }
-  finally {
-    saving.value = false
-  }
+  else if (res.code !== -1)
+    message.warning(t('common.failed'))
 }
 
 const handleValidateButtonClick = (e: MouseEvent) => {
@@ -148,7 +128,7 @@ const handleValidateButtonClick = (e: MouseEvent) => {
 
     <template #footer>
       <div class="float-right">
-        <NButton type="success" size="small" :loading="saving" :disabled="saving" @click="handleValidateButtonClick">
+        <NButton type="success" size="small" @click="handleValidateButtonClick">
           {{ $t('common.save') }}
         </NButton>
       </div>

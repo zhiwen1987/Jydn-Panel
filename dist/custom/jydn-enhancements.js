@@ -6,6 +6,7 @@
   const legacyLogo = ['AnGe', 'Panel'].join('-')
   const originalAnchorClick = HTMLAnchorElement.prototype.click
   const handledInputs = new WeakSet()
+  let visualPanelConfig = {}
 
   function storedData(key) {
     try {
@@ -49,9 +50,24 @@
       body: JSON.stringify(data || {}),
     })
     const result = await response.json()
-    if (!response.ok || result.code !== 0)
-      throw new Error(result.msg || `API request failed: ${path}`)
+    if (!response.ok || result.code !== 0) {
+      const error = new Error(result.msg || `API request failed: ${path}`)
+      error.code = result.code
+      throw error
+    }
     return result
+  }
+
+  async function getPublicAppearance() {
+    const response = await fetch('/api/about/siteAppearance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', lang: authHeaders().lang },
+      body: '{}',
+    })
+    const result = await response.json()
+    if (!response.ok || result.code !== 0)
+      throw new Error(result.msg || 'Site appearance request failed')
+    return result.data || {}
   }
 
   async function getPanelConfig() {
@@ -59,7 +75,12 @@
       return (await apiPost('/panel/userConfig/get', {})).data?.panel || localPanelConfig()
     }
     catch {
-      return localPanelConfig()
+      try {
+        return { ...localPanelConfig(), ...await getPublicAppearance() }
+      }
+      catch {
+        return localPanelConfig()
+      }
     }
   }
 
@@ -77,9 +98,28 @@
       body: form,
     })
     const result = await response.json()
-    if (!response.ok || result.code !== 0 || !result.data?.imageUrl)
-      throw new Error(result.msg || 'Image upload failed')
+    if (!response.ok || result.code !== 0 || !result.data?.imageUrl) {
+      const error = new Error(result.msg || 'Image upload failed')
+      error.code = result.code
+      throw error
+    }
     return result.data.imageUrl
+  }
+
+  function notifyEnhancement(message, bad = false) {
+    document.querySelector('.jydn-enhancement-toast')?.remove()
+    const toast = document.createElement('div')
+    toast.className = `jydn-enhancement-toast${bad ? ' bad' : ''}`
+    toast.textContent = message
+    document.body.appendChild(toast)
+    setTimeout(() => toast.remove(), 3600)
+  }
+
+  function notifyActionError(error, fallback) {
+    const expired = error?.code === 1000 || error?.code === 1001
+    notifyEnhancement(expired ? '登录状态已过期，请重新登录' : (error?.message || fallback), true)
+    if (expired)
+      setTimeout(() => { location.hash = '#/login' }, 900)
   }
 
   function injectStyle() {
@@ -93,7 +133,8 @@
       .jydn-logo-admin__preview{height:90px;border:1px dashed #94a3b8;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f8fafc;margin-bottom:8px}
       .jydn-logo-admin__preview img{max-width:90%;max-height:76px;object-fit:contain}
       .jydn-logo-admin__row{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
-      .jydn-logo-admin input[type=url]{min-width:240px;flex:1;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#0f172a}
+      .jydn-logo-admin input[type=url],.jydn-logo-admin input[type=text]{min-width:240px;flex:1;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#0f172a}
+      .jydn-logo-admin textarea{width:100%;min-height:118px;padding:9px 11px;border:1px solid #cbd5e1;border-radius:6px;background:#0f172a;color:#e2e8f0;font:13px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical;tab-size:2}
       .jydn-logo-admin button,.jydn-logo-admin__file{padding:7px 11px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#334155;cursor:pointer}
       .jydn-logo-admin__file input{display:none}
       .jydn-extra-style{margin-top:16px;padding-top:14px;border-top:1px solid rgba(148,163,184,.35)}
@@ -114,6 +155,9 @@
       .jydn-docker-table th,.jydn-docker-table td{padding:8px;text-align:left;border-bottom:1px solid #e2e8f0;vertical-align:middle}
       .jydn-docker-table button,.jydn-docker-head button{padding:6px 9px;border:1px solid #cbd5e1;border-radius:6px;background:#f8fafc;cursor:pointer}
       .jydn-docker-logs{max-height:55vh;overflow:auto;background:#111827;color:#e5e7eb;padding:12px;border-radius:8px;white-space:pre-wrap;word-break:break-all;user-select:text}
+      .jydn-enhancement-toast{position:fixed;z-index:10050;left:50%;top:24px;transform:translateX(-50%);padding:10px 16px;border-radius:8px;background:#16a34a;color:#fff;box-shadow:0 8px 30px #0004;font-size:14px;max-width:min(90vw,520px)}
+      .jydn-enhancement-toast.bad{background:#dc2626}
+      .jydn-logo-admin__file.is-loading{opacity:.55;pointer-events:none}
     `
     document.head.appendChild(style)
   }
@@ -180,35 +224,144 @@
     renderPreview(panelConfig.logoImageSrc || '')
 
     root.querySelector('[data-action=save]').addEventListener('click', async () => {
-      panelConfig.logoImageSrc = urlInput.value.trim()
-      await savePanelConfig(panelConfig)
-      renderPreview(panelConfig.logoImageSrc)
-      location.reload()
+      try {
+        panelConfig.logoImageSrc = urlInput.value.trim()
+        panelConfig.faviconImageSrc = panelConfig.logoImageSrc
+        await savePanelConfig(panelConfig)
+        visualPanelConfig = panelConfig
+        renderPreview(panelConfig.logoImageSrc)
+        applyVisualConfig(panelConfig)
+        notifyEnhancement('站点 Logo 已保存，标签图标已同步')
+      }
+      catch (error) {
+        notifyActionError(error, '站点 Logo 保存失败')
+      }
     })
     root.querySelector('[data-action=clear]').addEventListener('click', async () => {
-      panelConfig.logoImageSrc = ''
-      urlInput.value = ''
-      await savePanelConfig(panelConfig)
-      renderPreview('')
-      location.reload()
+      try {
+        panelConfig.logoImageSrc = ''
+        panelConfig.faviconImageSrc = ''
+        urlInput.value = ''
+        await savePanelConfig(panelConfig)
+        visualPanelConfig = panelConfig
+        renderPreview('')
+        applyVisualConfig(panelConfig)
+        notifyEnhancement('站点 Logo 已清除')
+      }
+      catch (error) {
+        notifyActionError(error, '站点 Logo 清除失败')
+      }
     })
     fileInput.addEventListener('change', async () => {
       if (!fileInput.files?.[0])
         return
-      panelConfig.logoImageSrc = await uploadImage(fileInput.files[0], 'icon')
-      urlInput.value = panelConfig.logoImageSrc
-      await savePanelConfig(panelConfig)
-      renderPreview(panelConfig.logoImageSrc)
-      location.reload()
+      const label = fileInput.closest('.jydn-logo-admin__file')
+      fileInput.disabled = true
+      label?.classList.add('is-loading')
+      notifyEnhancement('正在上传站点 Logo…')
+      try {
+        panelConfig.logoImageSrc = await uploadImage(fileInput.files[0], 'icon')
+        panelConfig.faviconImageSrc = panelConfig.logoImageSrc
+        urlInput.value = panelConfig.logoImageSrc
+        await savePanelConfig(panelConfig)
+        visualPanelConfig = panelConfig
+        renderPreview(panelConfig.logoImageSrc)
+        applyVisualConfig(panelConfig)
+        notifyEnhancement('站点 Logo 上传成功，标签图标已同步')
+      }
+      catch (error) {
+        notifyActionError(error, '站点 Logo 上传失败')
+      }
+      finally {
+        fileInput.disabled = false
+        label?.classList.remove('is-loading')
+        fileInput.value = ''
+      }
     })
   }
 
+  function faviconUrl(source) {
+    if (!source || /^(data:|blob:)/i.test(source)) return source || '/favicon.svg'
+    let hash = 0
+    for (let index = 0; index < source.length; index++) hash = ((hash << 5) - hash + source.charCodeAt(index)) | 0
+    return source + (source.includes('?') ? '&' : '?') + 'jydn_favicon=' + Math.abs(hash).toString(36)
+  }
+
+  function legacyPoweredByHtml(panelConfig) {
+    const text = String(panelConfig?.poweredByText || 'Jydn-Panel').trim() || 'Jydn-Panel'
+    const url = String(panelConfig?.poweredByUrl || 'https://github.com/liandu2024/Jydn-Panel').trim()
+    const wrapper = document.createElement('div')
+    wrapper.appendChild(document.createTextNode('Powered By '))
+    const link = document.createElement('a')
+    link.className = 'login-powered-link'
+    link.textContent = text
+    if (url) {
+      link.href = url
+      link.target = '_blank'
+      link.rel = 'noopener noreferrer'
+    }
+    wrapper.appendChild(link)
+    return wrapper.innerHTML
+  }
+
+  function sanitizePoweredByHtml(source) {
+    const template = document.createElement('template')
+    template.innerHTML = String(source || '')
+    template.content.querySelectorAll('script,style,iframe,object,embed,form,input,button,textarea,select,link,meta,svg,math').forEach(node => node.remove())
+    template.content.querySelectorAll('*').forEach((node) => {
+      Array.from(node.attributes).forEach((attribute) => {
+        const name = attribute.name.toLowerCase()
+        const value = attribute.value.trim()
+        if (name.startsWith('on') || ((name === 'href' || name === 'src' || name === 'xlink:href') && /^(javascript|data):/i.test(value)))
+          node.removeAttribute(attribute.name)
+        if (name === 'style' && /(expression\s*\(|url\s*\()/i.test(value))
+          node.removeAttribute(attribute.name)
+      })
+      if (node.tagName === 'A') {
+        node.classList.add('login-powered-link')
+        node.setAttribute('target', '_blank')
+        node.setAttribute('rel', 'noopener noreferrer')
+      }
+    })
+    return template.innerHTML
+  }
+
+  function poweredByHtml(panelConfig) {
+    return sanitizePoweredByHtml(panelConfig?.poweredByHtml || legacyPoweredByHtml(panelConfig))
+  }
+
+  function applyPoweredBy(panelConfig) {
+    const powered = document.querySelector('.login-powered')
+    if (!powered)
+      return
+    const html = poweredByHtml(panelConfig)
+    if (powered.innerHTML !== html)
+      powered.innerHTML = html
+  }
+
   function applyVisualConfig(panelConfig) {
-    const iconSource = panelConfig?.faviconImageSrc || '/favicon.svg'
-    const favicon = document.querySelector('link[rel="icon"]')
-    const appleIcon = document.querySelector('link[rel="apple-touch-icon"]')
-    if (favicon) favicon.href = iconSource
-    if (appleIcon) appleIcon.href = iconSource
+    const iconSource = faviconUrl(panelConfig?.logoImageSrc || panelConfig?.faviconImageSrc || '/favicon.svg')
+    let favicons = Array.from(document.querySelectorAll('link[rel~="icon"]'))
+    if (favicons.length === 0) {
+      const link = document.createElement('link')
+      link.rel = 'icon'
+      document.head.appendChild(link)
+      favicons = [link]
+    }
+    favicons.forEach((link) => {
+      link.removeAttribute('type')
+      link.href = iconSource
+    })
+    let appleIcons = Array.from(document.querySelectorAll('link[rel="apple-touch-icon"]'))
+    if (appleIcons.length === 0) {
+      const link = document.createElement('link')
+      link.rel = 'apple-touch-icon'
+      document.head.appendChild(link)
+      appleIcons = [link]
+    }
+    appleIcons.forEach(link => { link.href = iconSource })
+
+    applyPoweredBy(panelConfig)
 
     const catalog = document.querySelector('.left-catalog')
     if (catalog) {
@@ -244,9 +397,11 @@
     section.className = 'jydn-extra-style'
     section.innerHTML =
       '<div class="jydn-logo-admin__title">浏览器标签图标 / Browser Tab Icon</div>' +
-      '<div class="jydn-logo-admin__preview" data-preview="favicon"><span>未设置标签图标</span></div>' +
-      '<div class="jydn-logo-admin__row"><label class="jydn-logo-admin__file">上传标签图标<input data-file="favicon" type="file" accept="image/*"></label><button type="button" data-action="clear-favicon">清除标签图标</button></div>' +
-      '<div class="jydn-logo-admin__row"><input data-field="favicon" type="url" placeholder="标签图标图片地址"><button type="button" data-action="save-favicon">保存标签图标</button></div>' +
+      '<div class="jydn-logo-admin__preview" data-preview="favicon"><span>未设置站点 Logo</span></div>' +
+      '<div class="jydn-logo-admin__row"><span>自动跟随“站点 Logo”，上传或修改站点 Logo 后会同步更新浏览器标签图标。</span></div>' +
+      '<div class="jydn-extra-style"><div class="jydn-logo-admin__title">Powered By 代码</div>' +
+      '<div class="jydn-logo-admin__row"><textarea data-field="powered-code" rows="5" spellcheck="false" placeholder="输入 Powered By HTML 代码"></textarea></div>' +
+      '<div class="jydn-logo-admin__row"><span>支持 HTML；危险脚本、事件属性和不安全链接会自动过滤。</span><button type="button" data-action="save-powered">保存代码</button></div></div>' +
       '<div class="jydn-extra-style"><div class="jydn-logo-admin__title">左侧分组目录 / Left Catalog</div>' +
       '<div class="jydn-logo-admin__row"><label><input data-field="catalog-fixed" type="checkbox"> 固定显示目录名称</label></div>' +
       '<div class="jydn-logo-admin__row"><label>目录尺寸 <output data-field="catalog-output"></output></label><input data-field="catalog-size" type="range" min="10" max="30" step="1"><button type="button" data-action="save-catalog">保存目录设置</button></div></div>'
@@ -254,46 +409,44 @@
     delete logoRoot.dataset.jydnExtraInstalling
 
     const faviconPreview = section.querySelector('[data-preview=favicon]')
-    const faviconUrl = section.querySelector('[data-field=favicon]')
-    const faviconFile = section.querySelector('[data-file=favicon]')
+    const poweredCode = section.querySelector('[data-field=powered-code]')
     const catalogFixed = section.querySelector('[data-field=catalog-fixed]')
     const catalogSize = section.querySelector('[data-field=catalog-size]')
     const catalogOutput = section.querySelector('[data-field=catalog-output]')
-    faviconUrl.value = panelConfig.faviconImageSrc || ''
+    poweredCode.value = poweredByHtml(panelConfig)
     catalogFixed.checked = !!panelConfig.leftCatalogLabelFixed
     catalogSize.value = String(panelConfig.leftCatalogSize || 14)
     catalogOutput.textContent = catalogSize.value + 'px'
-    renderImagePreview(faviconPreview, panelConfig.faviconImageSrc || '', '未设置标签图标')
+    renderImagePreview(faviconPreview, panelConfig.logoImageSrc || '', '未设置站点 Logo')
 
     catalogSize.addEventListener('input', () => {
       catalogOutput.textContent = catalogSize.value + 'px'
     })
-    section.querySelector('[data-action=save-favicon]').addEventListener('click', async () => {
-      panelConfig.faviconImageSrc = faviconUrl.value.trim()
-      await savePanelConfig(panelConfig)
-      applyVisualConfig(panelConfig)
-      location.reload()
-    })
-    section.querySelector('[data-action=clear-favicon]').addEventListener('click', async () => {
-      panelConfig.faviconImageSrc = ''
-      await savePanelConfig(panelConfig)
-      applyVisualConfig(panelConfig)
-      location.reload()
+    section.querySelector('[data-action=save-powered]').addEventListener('click', async () => {
+      try {
+        panelConfig.poweredByHtml = sanitizePoweredByHtml(poweredCode.value.trim() || legacyPoweredByHtml(panelConfig))
+        poweredCode.value = panelConfig.poweredByHtml
+        await savePanelConfig(panelConfig)
+        visualPanelConfig = panelConfig
+        applyVisualConfig(panelConfig)
+        notifyEnhancement('Powered By 代码已保存')
+      }
+      catch (error) {
+        notifyActionError(error, 'Powered By 代码保存失败')
+      }
     })
     section.querySelector('[data-action=save-catalog]').addEventListener('click', async () => {
-      panelConfig.leftCatalogLabelFixed = catalogFixed.checked
-      panelConfig.leftCatalogSize = Number(catalogSize.value)
-      await savePanelConfig(panelConfig)
-      applyVisualConfig(panelConfig)
-      location.reload()
-    })
-    faviconFile.addEventListener('change', async () => {
-      if (!faviconFile.files?.[0])
-        return
-      panelConfig.faviconImageSrc = await uploadImage(faviconFile.files[0], 'icon')
-      await savePanelConfig(panelConfig)
-      applyVisualConfig(panelConfig)
-      location.reload()
+      try {
+        panelConfig.leftCatalogLabelFixed = catalogFixed.checked
+        panelConfig.leftCatalogSize = Number(catalogSize.value)
+        await savePanelConfig(panelConfig)
+        visualPanelConfig = panelConfig
+        applyVisualConfig(panelConfig)
+        notifyEnhancement('目录设置已保存')
+      }
+      catch (error) {
+        notifyActionError(error, '目录设置保存失败')
+      }
     })
   }
   function add32(a, b) { return (a + b) & 0xFFFFFFFF }
@@ -611,7 +764,10 @@
     })
     installLogoAdmin().catch(console.warn)
     installAdditionalStyleControls().catch(console.warn)
-    applyVisualConfig(localPanelConfig())
+    const currentConfig = localPanelConfig()
+    if (Object.keys(currentConfig).length)
+      visualPanelConfig = { ...visualPanelConfig, ...currentConfig }
+    applyVisualConfig(visualPanelConfig)
     document.getElementById('jydn-docker-trigger')?.remove()
   })
   observer.observe(document.documentElement, { childList: true, subtree: true })
@@ -619,6 +775,8 @@
   installAdditionalStyleControls().catch(console.warn)
   document.getElementById('jydn-docker-trigger')?.remove()
   getPanelConfig().then((config) => {
+    visualPanelConfig = config
+    storePanelConfig(config)
     applyVisualConfig(config)
     if (config.logoText === legacyLogo) {
       config.logoText = BRAND

@@ -100,9 +100,9 @@ onMounted(() => {
       auth: 1,
     },
     {
-      name: t('apps.pluginManager.appName'),
-      componentName: 'PluginManager',
-      icon: 'material-symbols:extension-outline-rounded',
+      name: t('apps.dockerManager.appName'),
+      componentName: 'DockerManager',
+      icon: 'mdi:docker',
       auth: 1,
     },
   ]

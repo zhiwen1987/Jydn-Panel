@@ -10,7 +10,7 @@ import (
 func getDefaultConfig() map[string]map[string]string {
 	return map[string]map[string]string{
 		"base": {
-			"http_port":        "3005",
+			"http_port":        "8008",
 			"source_path":      "./uploads",      // 存放文件的路径
 			"source_temp_path": "./runtime/temp", // 存放文件的缓存路径
 		},

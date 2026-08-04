@@ -1,34 +1,392 @@
-name: Release
+name: Build, Package and Release
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
 
-permissions:
-  contents: write
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+
+env:
+  APP_NAME: jydn-panel
+  GO_VERSION_FILE: go.mod
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  create-release:
-    runs-on: ubuntu-latest
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Resolve package version
+        id: version
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="0.0.0-${GITHUB_SHA::7}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  verify:
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare release notes
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ${{ env.GO_VERSION_FILE }}
+          cache: true
+
+      - name: Verify release inputs
+        shell: bash
         run: |
+          set -euo pipefail
+          test -f dist/index.html
+          test -f conf/conf.example.ini
+          test -f install.sh
+          test -f packaging/windows/install-windows.ps1
+          test -f packaging/macos/install-macos.sh
+          test -f packaging/openwrt/install-openwrt.sh
+          test -f packaging/openwrt/jydn-panel.init
+          test -f packaging/docker/install-docker.sh
+          bash -n install.sh
+          bash -n packaging/docker/install-docker.sh
+          bash -n packaging/macos/install-macos.sh
+          sh -n packaging/openwrt/install-openwrt.sh
+          sh -n packaging/openwrt/jydn-panel.init
+
+      - name: Parse Windows installer
+        shell: pwsh
+        run: |
+          [void][scriptblock]::Create((Get-Content packaging/windows/install-windows.ps1 -Raw))
+
+      - name: Test backend
+        run: go test ./...
+
+  build-native:
+    if: github.event_name != 'pull_request'
+    needs: [prepare, verify]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: linux-amd64
+            runner: ubuntu-24.04
+            goos: linux
+            goarch: amd64
+            package_os: linux
+          - id: linux-arm64
+            runner: ubuntu-24.04-arm
+            goos: linux
+            goarch: arm64
+            package_os: linux
+          - id: windows-amd64
+            runner: windows-2025
+            goos: windows
+            goarch: amd64
+            package_os: windows
+          - id: macos-amd64
+            runner: macos-15-intel
+            goos: darwin
+            goarch: amd64
+            package_os: macos
+          - id: macos-arm64
+            runner: macos-15
+            goos: darwin
+            goarch: arm64
+            package_os: macos
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ${{ env.GO_VERSION_FILE }}
+          cache: true
+
+      - name: Install MinGW for SQLite
+        if: matrix.package_os == 'windows'
+        shell: pwsh
+        run: |
+          if (-not (Test-Path 'C:\tools\mingw64\bin\gcc.exe')) {
+            choco install mingw -y --no-progress
+          }
+          'C:\tools\mingw64\bin' | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Build executable
+        shell: bash
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "1"
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          OUTPUT="build/${APP_NAME}"
+          if [[ "$GOOS" == "windows" ]]; then OUTPUT="${OUTPUT}.exe"; fi
+          go build -trimpath \
+            -ldflags="-s -w -X sun-panel/global.RUNCODE=release" \
+            -o "$OUTPUT" ./main.go
+
+      - name: Package Linux
+        if: matrix.package_os == 'linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.prepare.outputs.version }}"
+          ROOT="staging/jydn-panel"
+          mkdir -p "$ROOT/conf" out
+          install -m 0755 "build/$APP_NAME" "$ROOT/$APP_NAME"
+          cp -a dist "$ROOT/web"
+          cp -a seed lang assets "$ROOT/"
+          cp conf/conf.example.ini "$ROOT/conf/conf.example.ini"
+          cp install.sh LICENSE README.md UPDATELOG.md "$ROOT/"
+          cp -a doc "$ROOT/"
+          chmod +x "$ROOT/install.sh"
+          tar -C staging -czf "out/${APP_NAME}_${VERSION}_${{ matrix.id }}.tar.gz" jydn-panel
+
+      - name: Package macOS
+        if: matrix.package_os == 'macos'
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.prepare.outputs.version }}"
+          ROOT="staging/jydn-panel"
+          mkdir -p "$ROOT/conf" out
+          install -m 0755 "build/$APP_NAME" "$ROOT/$APP_NAME"
+          cp -a dist "$ROOT/web"
+          cp -a seed lang assets "$ROOT/"
+          cp conf/conf.example.ini "$ROOT/conf/conf.example.ini"
+          cp packaging/macos/install-macos.sh LICENSE README.md UPDATELOG.md "$ROOT/"
+          cp -a doc "$ROOT/"
+          chmod +x "$ROOT/install-macos.sh"
+          tar -C staging -czf "out/${APP_NAME}_${VERSION}_${{ matrix.id }}.tar.gz" jydn-panel
+
+      - name: Package Windows
+        if: matrix.package_os == 'windows'
+        shell: pwsh
+        run: |
+          $Version = '${{ needs.prepare.outputs.version }}'
+          $Root = 'staging\jydn-panel'
+          New-Item -ItemType Directory -Force -Path "$Root\conf", 'out' | Out-Null
+          Copy-Item "build\$env:APP_NAME.exe" "$Root\$env:APP_NAME.exe"
+          Copy-Item dist "$Root\web" -Recurse
+          foreach ($Tree in @('seed', 'lang', 'assets', 'doc')) { Copy-Item $Tree "$Root\$Tree" -Recurse }
+          Copy-Item conf\conf.example.ini "$Root\conf\conf.example.ini"
+          Copy-Item packaging\windows\install-windows.ps1, LICENSE, README.md, UPDATELOG.md $Root
+          Compress-Archive -Path $Root -DestinationPath "out\$env:APP_NAME`_${Version}_${{ matrix.id }}.zip" -CompressionLevel Optimal
+
+      - name: Upload native package
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.id }}
+          path: out/*
+          if-no-files-found: error
+          retention-days: 14
+
+  build-openwrt:
+    if: github.event_name != 'pull_request'
+    needs: [prepare, verify]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: openwrt-amd64
+            runner: ubuntu-24.04
+            goarch: amd64
+          - id: openwrt-arm64
+            runner: ubuntu-24.04-arm
+            goarch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ${{ env.GO_VERSION_FILE }}
+          cache: true
+
+      - name: Install musl toolchain
+        run: sudo apt-get update && sudo apt-get install -y musl-tools file
+
+      - name: Build static soft-router executable
+        shell: bash
+        env:
+          GOOS: linux
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "1"
+          CC: musl-gcc
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          go build -trimpath -tags "netgo osusergo" \
+            -ldflags="-s -w -linkmode external -extldflags=-static -X sun-panel/global.RUNCODE=release" \
+            -o "build/$APP_NAME" ./main.go
+          file "build/$APP_NAME"
+          if readelf -l "build/$APP_NAME" | grep -q 'Requesting program interpreter'; then
+            echo "OpenWrt binary is not static" >&2
+            exit 1
+          fi
+
+      - name: Package OpenWrt
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.prepare.outputs.version }}"
+          ROOT="staging/jydn-panel"
+          mkdir -p "$ROOT/conf" out
+          install -m 0755 "build/$APP_NAME" "$ROOT/$APP_NAME"
+          cp -a dist "$ROOT/web"
+          cp -a seed lang assets "$ROOT/"
+          cp conf/conf.example.ini "$ROOT/conf/conf.example.ini"
+          cp packaging/openwrt/install-openwrt.sh packaging/openwrt/jydn-panel.init "$ROOT/"
+          cp LICENSE README.md UPDATELOG.md "$ROOT/"
+          cp -a doc "$ROOT/"
+          chmod +x "$ROOT/install-openwrt.sh" "$ROOT/jydn-panel.init"
+          tar -C staging -czf "out/${APP_NAME}_${VERSION}_${{ matrix.id }}.tar.gz" jydn-panel
+
+      - name: Upload OpenWrt package
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.id }}
+          path: out/*
+          if-no-files-found: error
+          retention-days: 14
+
+  package-docker-installer:
+    if: github.event_name != 'pull_request'
+    needs: [prepare, verify]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Package Docker one-click installer
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.prepare.outputs.version }}"
+          ROOT="staging/jydn-panel-docker"
+          mkdir -p "$ROOT" out
+          cp packaging/docker/install-docker.sh LICENSE README.md UPDATELOG.md "$ROOT/"
+          cp -a doc "$ROOT/"
+          chmod +x "$ROOT/install-docker.sh"
+          tar -C staging -czf "out/${APP_NAME}_${VERSION}_docker-installer.tar.gz" jydn-panel-docker
+
+      - name: Upload Docker installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-docker-installer
+          path: out/*
+          if-no-files-found: error
+          retention-days: 14
+
+  docker:
+    if: github.event_name != 'pull_request'
+    needs: verify
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/main' }}
+            type=ref,event=tag
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=sha,prefix=sha-
+
+      - name: Build and push multi-architecture image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [prepare, build-native, build-openwrt, package-docker-installer, docker]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: package-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Generate checksums and release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release-assets
+          sha256sum * | sort -k2 > SHA256SUMS.txt
+          cd ..
           VERSION="${GITHUB_REF_NAME#v}"
           awk -v heading="## v${VERSION}" '
             $0 == heading { found = 1; print; next }
             found && /^## v/ { exit }
             found { print }
           ' UPDATELOG.md > release-notes.md
-          if ! test -s release-notes.md; then
-            printf '%s\n' "$GITHUB_REF_NAME" > release-notes.md
+          if [[ ! -s release-notes.md ]]; then
+            printf '# Jydn-Panel %s\n\n多平台安装包与 Docker 镜像。\n' "$GITHUB_REF_NAME" > release-notes.md
           fi
+          printf '\n## Docker\n\n```bash\ndocker pull ghcr.io/%s:%s\n```\n' "${GITHUB_REPOSITORY,,}" "$GITHUB_REF_NAME" >> release-notes.md
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: ${{ github.ref_name }}
-          body_path: release-notes.md
+      - name: Create or update GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber
+            gh release edit "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file release-notes.md
+          else
+            gh release create "$GITHUB_REF_NAME" release-assets/* \
+              --title "$GITHUB_REF_NAME" \
+              --notes-file release-notes.md
+          fi

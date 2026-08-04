@@ -93,13 +93,7 @@
       "vague": "模糊",
       "wallpaper": "壁纸"
     },
-    "pluginManager": {
-      "appName": "插件管理器",
-      "description": "统一管理 Jydn-Panel 系统插件",
-      "installed": "已安装",
-      "open": "打开管理",
-      "back": "返回插件列表"
-    },    "dockerManager": {
+    "dockerManager": {
       "actionFailed": "Docker 操作失败：{message}",
       "appName": "Docker 管理",
       "container": "容器",

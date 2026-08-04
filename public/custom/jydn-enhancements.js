@@ -235,10 +235,9 @@
 
   async function installAdditionalStyleControls() {
     const logoRoot = document.querySelector('.jydn-logo-admin')
-    if (!logoRoot || logoRoot.querySelector('.jydn-extra-style') || logoRoot.dataset.jydnExtraInstalling === 'true')
+    if (!logoRoot || logoRoot.querySelector('.jydn-extra-style'))
       return
 
-    logoRoot.dataset.jydnExtraInstalling = 'true'
     const panelConfig = await getPanelConfig()
     const section = document.createElement('div')
     section.className = 'jydn-extra-style'
@@ -251,7 +250,6 @@
       '<div class="jydn-logo-admin__row"><label><input data-field="catalog-fixed" type="checkbox"> 固定显示目录名称</label></div>' +
       '<div class="jydn-logo-admin__row"><label>目录尺寸 <output data-field="catalog-output"></output></label><input data-field="catalog-size" type="range" min="10" max="30" step="1"><button type="button" data-action="save-catalog">保存目录设置</button></div></div>'
     logoRoot.appendChild(section)
-    delete logoRoot.dataset.jydnExtraInstalling
 
     const faviconPreview = section.querySelector('[data-preview=favicon]')
     const faviconUrl = section.querySelector('[data-field=favicon]')
@@ -612,12 +610,12 @@
     installLogoAdmin().catch(console.warn)
     installAdditionalStyleControls().catch(console.warn)
     applyVisualConfig(localPanelConfig())
-    document.getElementById('jydn-docker-trigger')?.remove()
+    installDockerTrigger()
   })
   observer.observe(document.documentElement, { childList: true, subtree: true })
   installLogoAdmin().catch(console.warn)
   installAdditionalStyleControls().catch(console.warn)
-  document.getElementById('jydn-docker-trigger')?.remove()
+  installDockerTrigger()
   getPanelConfig().then((config) => {
     applyVisualConfig(config)
     if (config.logoText === legacyLogo) {

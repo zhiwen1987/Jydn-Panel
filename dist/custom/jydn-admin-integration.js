@@ -2,6 +2,7 @@
   'use strict'
   const q = (s, r = document) => r.querySelector(s)
   const qa = (s, r = document) => Array.from(r.querySelectorAll(s))
+  const embeddedPanels = new WeakMap()
   const text = v => v === undefined || v === null || v === '' ? '-' : String(v)
   const esc = v => text(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
   function stored(k) { try { return JSON.parse(localStorage.getItem(k) || 'null')?.data || {} } catch { return {} } }
@@ -27,6 +28,7 @@
   function injectStyle() {
     if (q('#jydn-admin-style')) return
     const style = document.createElement('style'); style.id = 'jydn-admin-style'; style.textContent = `
+.sun-main .logo{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;flex-wrap:nowrap!important}.sun-main .logo>img{display:block!important;width:auto!important;height:72px!important;max-width:160px!important;max-height:72px!important;object-fit:contain!important;flex:0 0 auto!important;margin-right:12px!important}.sun-main .logo>span{white-space:nowrap!important}@media(max-width:767px){.sun-main .logo>img{height:48px!important;max-width:112px!important;max-height:48px!important;margin-right:8px!important}}
 #jydn-docker-trigger{display:none!important}.jydn-catalog-toggle{width:10px;height:10px;min-width:10px;flex:0 0 10px;padding:0;margin:0 auto 4px;border:1px solid #ffffffe6;border-radius:999px;background:#facc15;font-size:0;cursor:pointer;box-shadow:0 0 0 2px #0f172a33}.jydn-catalog-toggle:hover{background:#fde047;box-shadow:0 0 0 3px #facc1547}.left-catalog{display:flex!important;flex-direction:column}.left-catalog .left-catalog-track{flex:1}.left-catalog.jydn-catalog-label-fixed .catalog-label{opacity:1!important;color:#fef08a!important}
 .jydn-plugin-entry>div{background:#fff;padding:10px;border-radius:8px;margin-bottom:5px;font-weight:700;cursor:pointer;display:flex;gap:8px;align-items:center}.dark .jydn-plugin-entry>div{background:#27272a}.jydn-about-logo{display:block;width:88px;height:88px;object-fit:contain;margin:6px auto 12px;border-radius:18px}
 .jydn-admin-overlay{position:fixed;inset:0;z-index:10020;background:#0f172ad9;padding:20px;display:flex;align-items:center;justify-content:center}.jydn-admin-panel{width:min(1180px,97vw);height:min(780px,94vh);overflow:auto;background:#f8fafc;color:#0f172a;border-radius:14px;padding:18px;box-shadow:0 24px 80px #0008}.jydn-admin-panel.jydn-admin-embedded{width:100%;max-width:100%;height:100%;max-height:100%;min-width:0;box-sizing:border-box;overflow:auto;box-shadow:none;border-radius:12px;padding:16px;contain:layout paint}.jydn-admin-embedded .jydn-table{display:block;width:100%;max-width:100%;overflow-x:auto;white-space:nowrap}.jydn-admin-embedded .jydn-tabs{max-width:100%;overflow-x:auto;flex-wrap:nowrap}.dark .jydn-admin-panel{background:#18181b;color:#f8fafc}.jydn-admin-head,.jydn-toolbar,.jydn-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.jydn-admin-head{justify-content:space-between;margin-bottom:14px}.jydn-admin-head h2{margin:0}.jydn-admin-panel button{padding:7px 11px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;color:#1e293b;cursor:pointer}.dark .jydn-admin-panel button{background:#27272a;color:#f8fafc;border-color:#52525b}.jydn-admin-panel button.primary{background:#2563eb;color:#fff;border-color:#2563eb}.jydn-admin-panel button.danger{background:#dc2626;color:#fff;border-color:#dc2626}.jydn-admin-panel input,.jydn-admin-panel select{padding:7px 9px;border:1px solid #cbd5e1;border-radius:7px;background:transparent;color:inherit}.jydn-tabs{display:flex;gap:6px;border-bottom:1px solid #cbd5e1;margin-bottom:14px}.jydn-tabs button{border:0;border-radius:7px 7px 0 0}.jydn-tabs button.active{background:#2563eb;color:#fff}.jydn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}.jydn-card{padding:13px;border:1px solid #cbd5e1;border-radius:10px;background:#fff}.dark .jydn-card{background:#27272a;border-color:#3f3f46}.jydn-card b{display:block;font-size:22px;margin-top:4px}.jydn-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}.jydn-table th,.jydn-table td{text-align:left;padding:8px;border-bottom:1px solid #cbd5e1;vertical-align:top}.jydn-code{white-space:pre-wrap;word-break:break-all;max-height:56vh;overflow:auto;background:#0f172a;color:#e2e8f0;padding:12px;border-radius:9px}.jydn-plugin-card{display:flex;gap:14px;align-items:center;padding:16px;border:1px solid #cbd5e1;border-radius:12px}.jydn-plugin-icon{font-size:36px}.jydn-grow{flex:1}.jydn-toast{position:fixed;right:22px;top:22px;z-index:10050;background:#16a34a;color:#fff;padding:10px 16px;border-radius:8px}.jydn-toast.bad{background:#dc2626}.jydn-admin-overlay.confirm{z-index:10040}.jydn-confirm{width:min(380px,90vw);background:#fff;color:#111827;border-radius:12px;padding:18px}.jydn-confirm .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.jydn-muted{opacity:.62;font-size:12px}`; document.head.appendChild(style)
@@ -54,10 +56,32 @@
     })
     qa('.jydn-about-logo', content).forEach(node => node.remove())
   }
+  function systemContent(modal) { return modal && (q('.n-layout-content .n-layout-scroll-container', modal) || q('.n-layout-content', modal)) }
+  function reorderSystemMenu(list) {
+    const labels = ['我的信息', '账号管理', '风格设置', '分组管理', '导出导入', '上传文件管理', '插件管理器', '关于']
+    const children = Array.from(list.children)
+    const ranked = children.map((node, index) => {
+      const label = (node.textContent || '').replace(/\s+/g, '')
+      const rank = labels.findIndex(item => label.includes(item))
+      return { node, index, rank: rank < 0 ? 6.5 : rank }
+    }).sort((a, b) => a.rank - b.rank || a.index - b.index)
+    if (ranked.some(({ node }, index) => node !== children[index])) ranked.forEach(({ node }) => list.appendChild(node))
+  }
   function installPluginEntry() {
     const modal = q('.app-starter-modal-content'); const list = modal && q('.n-layout-sider .overflow-auto', modal)
-    if (Number(stored('AUTH_TOKEN').userInfo?.role) !== 1 || !list || q('.jydn-plugin-entry', list)) return
-    const item = document.createElement('div'); item.className = 'jydn-plugin-entry'; item.innerHTML = '<div><span>🧩</span><span>插件管理器</span></div>'; item.addEventListener('click', e => { e.stopPropagation(); showPluginManager(q('.n-layout-content', modal)) }); list.appendChild(item)
+    if (Number(stored('AUTH_TOKEN').userInfo?.role) !== 1 || !list) return
+    let item = q('.jydn-plugin-entry', list)
+    if (!item) {
+      item = document.createElement('div'); item.className = 'jydn-plugin-entry'; item.innerHTML = '<div><span>🧩</span><span>插件管理器</span></div>'; item.addEventListener('click', e => { e.stopPropagation(); showPluginManager(systemContent(modal)) }); list.appendChild(item)
+    }
+    reorderSystemMenu(list)
+    if (!list.dataset.jydnPluginRestoreBound) {
+      list.dataset.jydnPluginRestoreBound = '1'
+      list.addEventListener('click', event => {
+        if (event.target instanceof Element && !event.target.closest('.jydn-plugin-entry'))
+          restoreSystemApps(systemContent(modal))
+      }, true)
+    }
   }  function basePanel(title) {
     const overlay = document.createElement('div'); overlay.className = 'jydn-admin-overlay'
     const panel = document.createElement('section'); panel.className = 'jydn-admin-panel'
@@ -65,15 +89,35 @@
     q('.jydn-actions', head).append(button('关闭', () => overlay.remove())); panel.appendChild(head); overlay.appendChild(panel); document.body.appendChild(overlay)
     overlay.addEventListener('click', event => { if (event.target === overlay) overlay.remove() }); return { overlay, panel, head }
   }
+  function restoreSystemApps(mount) {
+    if (!mount) return
+    const state = embeddedPanels.get(mount)
+    if (!state) return
+    state.panel?.remove()
+    state.hidden.forEach(({ node, display, ariaHidden }) => {
+      node.style.display = display
+      if (ariaHidden === null) node.removeAttribute('aria-hidden')
+      else node.setAttribute('aria-hidden', ariaHidden)
+    })
+    embeddedPanels.delete(mount)
+  }
   function contentPanel(mount, title) {
     if (!mount) return basePanel(title)
-    mount.replaceChildren()
+    let state = embeddedPanels.get(mount)
+    if (!state) {
+      const hidden = Array.from(mount.children).map(node => ({ node, display: node.style.display, ariaHidden: node.getAttribute('aria-hidden') }))
+      hidden.forEach(({ node }) => { node.style.display = 'none'; node.setAttribute('aria-hidden', 'true') })
+      state = { hidden, panel: null }
+      embeddedPanels.set(mount, state)
+    }
+    state.panel?.remove()
     const panel = document.createElement('section'); panel.className = 'jydn-admin-panel jydn-admin-embedded'
     const head = document.createElement('header'); head.className = 'jydn-admin-head'; head.innerHTML = `<h2>${esc(title)}</h2><div class="jydn-actions"></div>`
+    state.panel = panel
     panel.appendChild(head); mount.appendChild(panel); return { overlay: null, panel, head }
-  }
-  function showPluginManager(mount) {
-    q('#jydn-docker-trigger')?.remove(); const { panel } = contentPanel(mount, '系统应用 / 插件管理器')
+  }  function showPluginManager(mount) {
+    q('#jydn-docker-trigger')?.remove(); const { panel, head } = contentPanel(mount, '系统应用 / 插件管理器')
+    q('.jydn-actions', head).prepend(button('返回系统应用', () => restoreSystemApps(mount)))
     const card = document.createElement('div'); card.className = 'jydn-plugin-card'; card.innerHTML = '<div class="jydn-plugin-icon">🐳</div><div class="jydn-grow"><strong>cockpit-docker</strong><div class="jydn-muted">Docker API · Overview · Containers · Images · Volumes · Networks</div></div><span>已安装</span>'
     card.append(button('打开', () => showDocker(mount))); panel.appendChild(card)
   }

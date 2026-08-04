@@ -26,7 +26,7 @@ Jydn-Panel is a single-repository Go + Vue application.
 
 Use the narrowest command that proves the change.
 
-- Frontend install/type checks may be run with `pnpm install` and `pnpm run type-check`; frontend dev/build commands are intentionally blocked because the legacy `src/` styles do not match the current 3005 release UI.
+- Frontend install/type checks may be run with `pnpm install` and `pnpm run type-check`; frontend dev/build commands are intentionally blocked because the legacy `src/` styles do not match the current 8008 release UI.
 - Frontend type check only: `pnpm run type-check`.
 - Frontend lint: `pnpm run lint`.
 - Backend compile: `go build ./main.go`.
@@ -36,20 +36,20 @@ Use the narrowest command that proves the change.
 Notes:
 
 - The frontend package manager is pnpm; avoid introducing new npm/yarn lockfile churn.
-- `pnpm run build`, `pnpm run build:frontend`, `pnpm run build-only`, and `pnpm run dev` are blocked on purpose so the old Vite frontend cannot overwrite the current 3005 bundle.
+- `pnpm run build`, `pnpm run build:frontend`, `pnpm run build-only`, and `pnpm run dev` are blocked on purpose so the old Vite frontend cannot overwrite the current 8008 bundle.
 - `add-frontend-version.js` mutates `.env` by updating `VITE_APP_VERSION`; be aware of that expected side effect.
 
 ## Runtime Behavior
 
 - Backend startup is `initialize.InitApp()` then `router.InitRouters(":" + http_port)`.
-- Default backend port comes from `[base] http_port` in `conf/conf.ini`/`conf.example.ini`, currently `3005`.
-- Local development should use one visible port by default: the Go backend port from `conf/conf.ini` (currently `3005` in this workspace).
+- Default backend port comes from `[base] http_port` in `conf/conf.ini`/`conf.example.ini`, currently `8008`.
+- Local development should use one visible port by default: the Go backend port from `conf/conf.ini` (currently `8008` in this workspace).
 - Do not start the Vite dev server unless the user explicitly asks for frontend HMR.
-- In this workspace, the current correct 3005 frontend styling is the backend-served `dist/` bundle. The checked-in `src/` frontend can produce an older-looking UI if rebuilt directly.
+- In this workspace, the current correct 8008 frontend styling is the backend-served `dist/` bundle. The checked-in `src/` frontend can produce an older-looking UI if rebuilt directly.
 - Do not overwrite the current `dist/` bundle with `vite build`/`pnpm run build`. The package scripts intentionally block Vite dev/build; do not re-enable them unless the legacy frontend source/style mismatch has been resolved and the user explicitly asks for a source rebuild workflow.
-- For urgent frontend fixes that must appear on 3005 while preserving the current visual style, patch the backend-served `dist/assets/**` file that `dist/index.html` actually references, then verify through port `3005`.
-- After code changes, the working result must be visible through the backend-served app on port `3005`. Do not consider frontend work complete if it only works on a Vite development port.
-- Keep backend-served frontend files cache-safe: `index.html`, `/assets/**`, `/custom/**`, and service-worker kill-switch files must not allow stale browser/PWA cache to keep an old 3005 UI alive after deployment.
+- For urgent frontend fixes that must appear on 8008 while preserving the current visual style, patch the backend-served `dist/assets/**` file that `dist/index.html` actually references, then verify through port `8008`.
+- After code changes, the working result must be visible through the backend-served app on port `8008`. Do not consider frontend work complete if it only works on a Vite development port.
+- Keep backend-served frontend files cache-safe: `index.html`, `/assets/**`, `/custom/**`, and service-worker kill-switch files must not allow stale browser/PWA cache to keep an old 8008 UI alive after deployment.
 - Vite dev server config exists only for deliberate frontend rebuild work. Because it creates a second origin with separate browser storage, it can look different from the backend-served app.
 - Backend serves static frontend files from `./web` and uploaded files from `[base] source_path`, currently `./uploads`.
 - SQLite is the default database. If the database file is absent, startup may seed from `seed/database/database.db`.
@@ -83,7 +83,7 @@ Notes:
 - Dockerfile builds the Go binary in the repository root and copies committed `dist/` into `/app/web`.
 - Docker entrypoint initializes `/data/{conf,database,uploads,runtime}` and symlinks `/app/{conf,database,uploads,runtime}` to those persistent paths.
 - GitHub release workflow verifies `dist/index.html`, copies `dist/*` to `web/`, builds `jydn-panel`, and packages `conf/` plus `web/`.
-- Docker deployment defaults to port `3005` and persists `/data/{conf,database,uploads,runtime}` for lossless upgrades.
+- Docker deployment defaults to port `8008` and persists `/data/{conf,database,uploads,runtime}` for lossless upgrades.
 - When a release version needs to change, increment the second decimal directly in order, for example `1.01` to `1.02` to `1.03`; do not create patch-style versions such as `1.00.1`.
 
 ## Change Discipline

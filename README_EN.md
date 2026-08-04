@@ -8,7 +8,7 @@
 # Jydn-Panel
 
 [![Github](https://img.shields.io/badge/Github-123456?logo=github&labelColor=242424)](https://github.com/zhiwen1987/Jydn-Panel)
-[![docker](https://img.shields.io/badge/docker-123456?logo=docker&logoColor=fff&labelColor=1c7aed)](https://github.com/zhiwen1987/Jydn-Panel/pkgs/container/jydn-panel) 
+[![docker](https://img.shields.io/badge/docker-123456?logo=docker&logoColor=fff&labelColor=1c7aed)](https://github.com/zhiwen1987/Jydn-Panel/pkgs/container/jydn-panel)
 [![Telegram](https://img.shields.io/badge/Telegram-123456?logo=telegram&labelColor=229ED9)](https://t.me/angeworld2024)
 <br>
 
@@ -53,7 +53,7 @@ A perfect website navigation + webpage bookmarks panel.
 
 ```bash
 docker run -d --name jydn-panel --restart=unless-stopped \
-  -p 3005:3005 \
+  -p 8008:8008 \
   -v /root/jydn-data:/data \
   ghcr.io/zhiwen1987/jydn-panel:latest
 ```
@@ -66,14 +66,14 @@ Upgrade:
 docker pull ghcr.io/zhiwen1987/jydn-panel:latest
 docker stop jydn-panel && docker rm jydn-panel
 docker run -d --name jydn-panel --restart=unless-stopped \
-  -p 3005:3005 \
+  -p 8008:8008 \
   -v /root/jydn-data:/data \
   ghcr.io/zhiwen1987/jydn-panel:latest
 ```
 
 ## 🔐 First Login
 
-URL: http://[IP]:3005
+URL: http://[IP]:8008
 - **Default Admin Username**: `admin`
 - **Default Admin Password**: `admin`
 

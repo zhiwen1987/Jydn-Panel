@@ -7,7 +7,6 @@ import { Clock, SearchBox } from '@/components/deskModule'
 import { SvgIcon, SvgIconOnline } from '@/components/common'
 import { deletes, edit, getListByGroupId, saveSort } from '@/api/panel/itemIcon'
 import { getList as getGroupList } from '@/api/panel/itemIconGroup'
-import { set as setUserConfig } from '@/api/panel/userConfig'
 
 import { setTitle, updateLocalUserInfo } from '@/utils/cmn'
 import { useAuthStore, usePanelState } from '@/store'
@@ -31,7 +30,6 @@ const scrollContainerRef = ref<HTMLElement | undefined>(undefined)
 const groupRefs = ref<Record<number, HTMLElement | null>>({})
 const groupDotMap = ref<Record<number, number>>({})
 const isMobile = ref(false)
-const catalogLabelsVisible = ref(false)
 
 function updateIsMobile() {
   isMobile.value = window.innerWidth <= 500
@@ -48,29 +46,6 @@ function applyFavicon(source?: string) {
 }
 
 watch(() => panelState.panelConfig.faviconImageSrc, source => applyFavicon(source), { immediate: true })
-
-watch(() => panelState.panelConfig.leftCatalogLabelFixed, (fixed) => {
-  catalogLabelsVisible.value = !!fixed
-}, { immediate: true })
-
-async function toggleCatalogLabels() {
-  const previous = catalogLabelsVisible.value
-  const next = !previous
-  catalogLabelsVisible.value = next
-  panelState.panelConfig.leftCatalogLabelFixed = next
-  panelState.recordState()
-  try {
-    const response = await setUserConfig<Panel.userConfig>({ panel: panelState.panelConfig })
-    if (response.code !== 0)
-      throw new Error(response.msg)
-  }
-  catch (error) {
-    catalogLabelsVisible.value = previous
-    panelState.panelConfig.leftCatalogLabelFixed = previous
-    panelState.recordState()
-    ms.error(error instanceof Error ? error.message : String(error))
-  }
-}
 
 const editItemInfoShow = ref<boolean>(false)
 const editItemInfoData = ref<Panel.ItemInfo | null>(null)
@@ -969,17 +944,10 @@ function getGroupDotTop(groupId?: number) {
     <div
       v-if="panelState.panelConfig.leftCatalogShow !== false && !isMobile"
       class="left-catalog"
-      :class="{ 'left-catalog-label-fixed': catalogLabelsVisible }"
+      :class="{ 'left-catalog-label-fixed': panelState.panelConfig.leftCatalogLabelFixed }"
       :style="{ '--jydn-catalog-size': `${panelState.panelConfig.leftCatalogSize || 14}px` }"
     >
-      <button
-        type="button"
-        class="left-catalog-toggle"
-        :class="{ 'left-catalog-toggle-active': catalogLabelsVisible }"
-        :title="catalogLabelsVisible ? '隐藏目录名称' : '固定显示目录名称'"
-        @click="toggleCatalogLabels"
-      >
-      </button>      <div class="left-catalog-track">
+      <div class="left-catalog-track">
         <div
           v-for="group in filterItems"
           :key="`catalog-${group.id}`"
@@ -1234,34 +1202,11 @@ html {
   bottom: 12px;
   z-index: 20;
   display: flex;
-  align-items: center;
-  flex-direction: column;
-}
-
-.left-catalog-toggle {
-  width: 10px;
-  height: 10px;
-  min-width: 10px;
-  flex: 0 0 10px;
-  padding: 0;
-  margin: 0 auto 4px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  border-radius: 999px;
-  background: #facc15;
-  font-size: 0;
-  cursor: pointer;
-  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.2);
-}
-
-.left-catalog-toggle:hover,
-.left-catalog-toggle-active {
-  background: #fde047;
-  box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.28);
+  align-items: stretch;
 }
 
 .left-catalog-track {
-  flex: 1;
-  min-height: 0;
+  height: 100%;
   width: var(--jydn-catalog-size, var(--sp-scrollbar-width, 14px));
   position: relative;
   box-sizing: border-box; /* 保证含边框后的实际宽度仍是设定值 */

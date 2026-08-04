@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"sun-panel/api/api_v1/common/apiReturn"
+	"sun-panel/global"
 	"sun-panel/lib/cmn"
+	"sun-panel/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,6 +35,44 @@ func (a *About) Get(c *gin.Context) {
 		"versionName": version.Version,
 		"versionCode": version.Version_code,
 	})
+}
+
+func loadSiteAppearance() gin.H {
+	appearance := gin.H{}
+	admin := models.User{}
+	if err := global.Db.Select("id").Where("role = ?", 1).Order("id ASC").First(&admin).Error; err == nil {
+		config := models.UserConfig{}
+		if err := global.Db.Where("user_id = ?", admin.ID).First(&config).Error; err == nil {
+			panel := map[string]interface{}{}
+			if json.Unmarshal([]byte(config.PanelJson), &panel) == nil {
+				for _, key := range []string{"faviconImageSrc", "logoImageSrc", "logoText", "poweredByText", "poweredByUrl", "poweredByHtml"} {
+					if value, ok := panel[key]; ok {
+						appearance[key] = value
+					}
+				}
+			}
+		}
+	}
+	return appearance
+}
+
+func (a *About) SiteAppearance(c *gin.Context) {
+	apiReturn.SuccessData(c, loadSiteAppearance())
+}
+
+func (a *About) SiteFavicon(c *gin.Context) {
+	appearance := loadSiteAppearance()
+	source, _ := appearance["logoImageSrc"].(string)
+	if strings.TrimSpace(source) == "" {
+		source, _ = appearance["faviconImageSrc"].(string)
+	}
+	source = strings.TrimSpace(source)
+	if source == "" || (!strings.HasPrefix(source, "/") && !strings.HasPrefix(source, "http://") && !strings.HasPrefix(source, "https://")) {
+		source = "/favicon.svg"
+	}
+	c.Header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+	c.Header("Pragma", "no-cache")
+	c.Redirect(http.StatusTemporaryRedirect, source)
 }
 
 func versionParts(version string) []int {

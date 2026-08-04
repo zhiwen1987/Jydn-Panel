@@ -35,7 +35,7 @@ FROM alpine
 
 WORKDIR /app
 
-# Publish the current live web bundle from dist/ so Docker matches localhost:3005.
+# Publish the current live web bundle from dist/ so Docker matches localhost:8008.
 COPY ./dist /app/web
 
 COPY --from=server_image /build/jydn-panel /app/jydn-panel
@@ -49,7 +49,7 @@ COPY ./docker/entrypoint.sh /entrypoint.sh
 # 中国国内源
 # RUN sed -i "s@dl-cdn.alpinelinux.org@mirrors.aliyun.com@g" /etc/apk/repositories
 
-EXPOSE 3005
+EXPOSE 8008
 
 RUN apk add --no-cache bash ca-certificates docker-cli su-exec tzdata \
     && chmod +x /app/jydn-panel /entrypoint.sh \

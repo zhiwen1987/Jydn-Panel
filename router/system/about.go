@@ -11,5 +11,7 @@ func InitAbout(router *gin.RouterGroup) {
 	{
 		router.POST("about", about.Get)
 		router.POST("about/checkVersion", about.CheckVersion)
+		router.POST("about/siteAppearance", about.SiteAppearance)
+		router.GET("about/siteFavicon", about.SiteFavicon)
 	}
 }

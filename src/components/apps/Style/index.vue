@@ -43,15 +43,13 @@ function openLogoPicker() {
 
 function handlePickLogo(src: string) {
   panelState.panelConfig.logoImageSrc = src
+  panelState.panelConfig.faviconImageSrc = src
   setUserConfig({ panel: panelState.panelConfig })
   logoPickerShow.value = false
 }
 
 function handleClearLogo() {
   panelState.panelConfig.logoImageSrc = ''
-}
-
-function handleClearFavicon() {
   panelState.panelConfig.faviconImageSrc = ''
 }
 
@@ -141,17 +139,6 @@ function handleUploadLogoFinish({
 }) {
   const res = JSON.parse((event?.target as XMLHttpRequest).response)
   panelState.panelConfig.logoImageSrc = res.data.imageUrl
-  return file
-}
-
-function handleUploadFaviconFinish({
-  file,
-  event,
-}: {
-  file: UploadFileInfo
-  event?: ProgressEvent
-}) {
-  const res = JSON.parse((event?.target as XMLHttpRequest).response)
   panelState.panelConfig.faviconImageSrc = res.data.imageUrl
   return file
 }
@@ -259,41 +246,32 @@ function resetPanelConfig() {
 
     <NCard style="border-radius:10px" class="mt-[10px]" size="small">
       <div class="text-slate-500 mb-[5px] font-bold">
-        {{ $t('apps.baseSettings.favicon') }}
+        浏览器标签图标 / Browser Tab Icon
       </div>
-      <NUpload
-        action="/api/file/uploadImg?fileType=icon"
-        :show-file-list="false"
-        name="imgfile"
-        :headers="{ token: authStore.token }"
-        directory-dnd
-        @finish="handleUploadFaviconFinish"
-      >
-        <NUploadDragger>
-          <div class="h-[88px] w-full border bg-slate-100 flex justify-center items-center cursor-pointer rounded-[10px] overflow-hidden">
-            <img
-              v-if="panelState.panelConfig.faviconImageSrc"
-              :src="panelState.panelConfig.faviconImageSrc"
-              :alt="$t('apps.baseSettings.favicon')"
-              class="h-[56px] w-[56px] object-contain"
-            >
-            <span v-else class="text-slate-500">{{ $t('apps.baseSettings.uploadFavicon') }}</span>
-          </div>
-        </NUploadDragger>
-      </NUpload>
-      <div class="flex justify-end mt-2">
-        <NButton v-if="panelState.panelConfig.faviconImageSrc" size="small" quaternary type="error" @click="handleClearFavicon">
-          {{ $t('apps.baseSettings.clearFavicon') }}
-        </NButton>
+      <div class="h-[88px] w-full border bg-slate-100 flex justify-center items-center rounded-[10px] overflow-hidden">
+        <img
+          v-if="panelState.panelConfig.logoImageSrc"
+          :src="panelState.panelConfig.logoImageSrc"
+          alt="Browser Tab Icon"
+          class="h-[56px] w-[56px] object-contain"
+        >
+        <span v-else class="text-slate-500">未设置站点 Logo</span>
+      </div>
+      <div class="text-slate-500 text-sm mt-2">
+        自动跟随“站点 Logo”，无需单独上传。
+      </div>
+      <div class="text-slate-500 mt-[14px] mb-[5px] font-bold">
+        Powered By 代码
       </div>
       <NInput
-        v-model:value="panelState.panelConfig.faviconImageSrc"
-        class="mt-2"
-        type="text"
-        size="small"
-        clearable
-        :placeholder="$t('apps.baseSettings.faviconImageUrl')"
+        v-model:value="panelState.panelConfig.poweredByHtml"
+        type="textarea"
+        :rows="5"
+        placeholder="Powered By <a href=&quot;https://github.com/liandu2024/Jydn-Panel&quot;>Jydn-Panel</a>"
       />
+      <div class="text-slate-500 text-sm mt-2">
+        支持 HTML；危险脚本、事件属性和不安全链接会在显示时自动过滤。
+      </div>
     </NCard>
 
     <NCard style="border-radius:10px" class="mt-[10px]" size="small">

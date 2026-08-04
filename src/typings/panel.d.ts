@@ -49,6 +49,9 @@ declare namespace Panel {
         logoText?:string
         logoImageSrc?:string
         faviconImageSrc?:string
+        poweredByText?:string
+        poweredByUrl?:string
+        poweredByHtml?:string
         topHeaderShow?:boolean
         clockShowSecond?:boolean
         clockColor?:string

@@ -8,7 +8,7 @@
 # Jydn-Panel
 
 [![Github](https://img.shields.io/badge/Github-123456?logo=github&labelColor=242424)](https://github.com/zhiwen1987/Jydn-Panel)
-[![docker](https://img.shields.io/badge/docker-123456?logo=docker&logoColor=fff&labelColor=1c7aed)](https://github.com/zhiwen1987/Jydn-Panel/pkgs/container/jydn-panel) 
+[![docker](https://img.shields.io/badge/docker-123456?logo=docker&logoColor=fff&labelColor=1c7aed)](https://github.com/zhiwen1987/Jydn-Panel/pkgs/container/jydn-panel)
 [![Telegram](https://img.shields.io/badge/Telegram-123456?logo=telegram&labelColor=229ED9)](https://t.me/angeworld2024)
 <br>
 
@@ -57,7 +57,7 @@ A perfect website navigation + webpage bookmarks panel.
 
 ```bash
 docker run -d --name jydn-panel --restart=unless-stopped \
-  -p 3005:3005 \
+  -p 8008:8008 \
   -v /root/jydn-data:/data \
   ghcr.io/zhiwen1987/jydn-panel:latest
 ```
@@ -70,14 +70,14 @@ docker run -d --name jydn-panel --restart=unless-stopped \
 docker pull ghcr.io/zhiwen1987/jydn-panel:latest
 docker stop jydn-panel && docker rm jydn-panel
 docker run -d --name jydn-panel --restart=unless-stopped \
-  -p 3005:3005 \
+  -p 8008:8008 \
   -v /root/jydn-data:/data \
   ghcr.io/zhiwen1987/jydn-panel:latest
 ```
 
 ## 🔐 首次登录
 
-登录网址：http://[部署设备的IP]:3005
+登录网址：http://[部署设备的IP]:8008
 
 - **默认管理员账号**：`admin`
 - **默认管理员密码**：`admin`
@@ -88,6 +88,10 @@ docker run -d --name jydn-panel --restart=unless-stopped \
 
 ## 📋 文档
 
+- [Jydn-Panel 定制变更说明](./doc/JYDN_CHANGELOG.md)
+- [项目文件目录架构](./doc/PROJECT_STRUCTURE.md)
+- [GitHub Actions 多平台构建与一键安装包](./doc/RELEASE_PACKAGING.md)
+- [版本更新记录](./UPDATELOG.md)
 - [中文文档](https://github.com/zhiwen1987/Jydn-Panel/blob/main/README.md)
 - [English Documentation](https://github.com/zhiwen1987/Jydn-Panel/blob/main/README_EN.md)
 

@@ -93,13 +93,7 @@
       "vague": "Blur",
       "wallpaper": "Wallpaper"
     },
-    "pluginManager": {
-      "appName": "Plugin Manager",
-      "description": "Manage Jydn-Panel system plugins",
-      "installed": "Installed",
-      "open": "Open",
-      "back": "Back to plugins"
-    },    "dockerManager": {
+    "dockerManager": {
       "actionFailed": "Docker action failed: {message}",
       "appName": "Docker Manager",
       "container": "Container",

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP_NAME="jydn-panel"
-REPO="zhiwen1987/Jydn-Panel"
+REPO="liandu2024/Jydn-Panel"
 INSTALL_DIR="/opt/${APP_NAME}"
 BIN_NAME="${APP_NAME}"
 PORT=""
@@ -14,7 +14,7 @@ usage() {
 Jydn-Panel one-line installer (systemd)
 
 Usage:
-  curl -fsSL https://raw.githubusercontent.com/zhiwen1987/Jydn-Panel/main/scripts/install.sh | sudo bash -s -- [options]
+  curl -fsSL https://raw.githubusercontent.com/liandu2024/Jydn-Panel/main/scripts/install.sh | sudo bash -s -- [options]
 
 Options:
   --version vX.Y.Z   Install specific version (default: latest release)
