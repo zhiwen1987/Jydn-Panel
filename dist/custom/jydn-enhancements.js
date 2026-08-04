@@ -289,7 +289,7 @@
 
   function legacyPoweredByHtml(panelConfig) {
     const text = String(panelConfig?.poweredByText || 'Jydn-Panel').trim() || 'Jydn-Panel'
-    const url = String(panelConfig?.poweredByUrl || 'https://github.com/liandu2024/Jydn-Panel').trim()
+    const url = String(panelConfig?.poweredByUrl || 'https://github.com/zhiwen1987/Jydn-Panel').trim()
     const wrapper = document.createElement('div')
     wrapper.appendChild(document.createTextNode('Powered By '))
     const link = document.createElement('a')

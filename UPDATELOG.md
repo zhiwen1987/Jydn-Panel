@@ -80,7 +80,7 @@
 
 - [发布] 增加 GitHub Release，便于新版本展示与下载
 - [修正] 同步程序内版本号到 v0.1.20
-- [验证] README 中 Docker 安装方式继续保持不变，镜像仍使用 `ghcr.io/liandu2024/jydn-panel:latest`
+- [验证] README 中 Docker 安装方式继续保持不变，镜像仍使用 `ghcr.io/zhiwen1987/jydn-panel:latest`
 
 ## v1.0.0
 - 首个版本

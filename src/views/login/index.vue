@@ -117,7 +117,7 @@ function handleChangeLanuage(value: Language) {
         </div> -->
 
         <div class="login-powered flex justify-center">
-          Powered By <a href="https://github.com/liandu2024/Jydn-Panel" target="_blank" class="login-powered-link ml-[5px]">Jydn-Panel</a>
+          Powered By <a href="https://github.com/zhiwen1987/Jydn-Panel" target="_blank" class="login-powered-link ml-[5px]">Jydn-Panel</a>
         </div>
       </NForm>
     </NCard>

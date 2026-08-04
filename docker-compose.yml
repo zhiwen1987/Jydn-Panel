@@ -1,6 +1,6 @@
 services:
   jydn-panel:
-    image: ghcr.io/liandu2024/jydn-panel:v2.04
+    image: ghcr.io/zhiwen1987/jydn-panel:v2.04
     container_name: jydn-panel
     volumes:
       - ./data:/data

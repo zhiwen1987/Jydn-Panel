@@ -267,7 +267,7 @@ function resetPanelConfig() {
         v-model:value="panelState.panelConfig.poweredByHtml"
         type="textarea"
         :rows="5"
-        placeholder="Powered By <a href=&quot;https://github.com/liandu2024/Jydn-Panel&quot;>Jydn-Panel</a>"
+        placeholder="Powered By <a href=&quot;https://github.com/zhiwen1987/Jydn-Panel&quot;>Jydn-Panel</a>"
       />
       <div class="text-slate-500 text-sm mt-2">
         支持 HTML；危险脚本、事件属性和不安全链接会在显示时自动过滤。

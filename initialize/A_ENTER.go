@@ -193,6 +193,6 @@ func Logo() {
 	versionInfo := cmn.GetSysVersionInfo()
 	fmt.Println("Version:", versionInfo.Version)
 	fmt.Println("Welcome to the Jydn-Panel.")
-	fmt.Println("Project address:", "https://github.com/liandu2024/Jydn-Panel")
+	fmt.Println("Project address:", "https://github.com/zhiwen1987/Jydn-Panel")
 
 }

@@ -17,11 +17,11 @@ const versionName = '2.04'
       </div>
       <div class="text-xl">
         <NGradientText type="info">
-          <a href="https://github.com/liandu2024/Jydn-Panel/releases" class="font-semibold" :title="$t('apps.about.viewUpdateLog')" target="_blank">Ver: {{ versionName }}</a>
+          <a href="https://github.com/zhiwen1987/Jydn-Panel/releases" class="font-semibold" :title="$t('apps.about.viewUpdateLog')" target="_blank">Ver: {{ versionName }}</a>
         </NGradientText>
       </div>
       <div class="mt-2">
-        <a href="https://github.com/liandu2024/Jydn-Panel/releases" target="_blank" class="link">{{ $t('apps.about.checkUpdate') }}</a>
+        <a href="https://github.com/zhiwen1987/Jydn-Panel/releases" target="_blank" class="link">{{ $t('apps.about.checkUpdate') }}</a>
       </div>
     </div>
 
@@ -32,7 +32,7 @@ const versionName = '2.04'
       <div class="flex mt-[10px] flex-wrap justify-center">
         <div class="flex items-center mx-[10px]">
           <img class="w-[20px] h-[20px] mr-[5px]" :src="srcGithub" alt="">
-          <a href="https://github.com/liandu2024/Jydn-Panel" target="_blank" class="link">Github</a>
+          <a href="https://github.com/zhiwen1987/Jydn-Panel" target="_blank" class="link">Github</a>
         </div>
         <div class="flex items-center mx-[10px]">
           <img class="w-[20px] h-[20px] mr-[5px]" :src="srcTelegram" alt="">
