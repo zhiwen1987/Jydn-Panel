@@ -29,6 +29,26 @@ type githubLatestRelease struct {
 	PublishedAt string `json:"published_at"`
 }
 
+func githubAccessToken() string {
+	if token := strings.TrimSpace(os.Getenv("JYDN_GITHUB_TOKEN")); token != "" {
+		return token
+	}
+	paths := []string{"/data/conf/github-token", "./conf/github-token"}
+	if configured := strings.TrimSpace(os.Getenv("JYDN_GITHUB_TOKEN_FILE")); configured != "" {
+		paths = []string{configured}
+	}
+	for _, path := range paths {
+		content, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		if token := strings.TrimSpace(string(content)); token != "" {
+			return token
+		}
+	}
+	return ""
+}
+
 func (a *About) Get(c *gin.Context) {
 	version := cmn.GetSysVersionInfo()
 	apiReturn.SuccessData(c, gin.H{
@@ -130,7 +150,7 @@ func (a *About) CheckVersion(c *gin.Context) {
 	request.Header.Set("Accept", "application/vnd.github+json")
 	request.Header.Set("X-GitHub-Api-Version", "2022-11-28")
 	request.Header.Set("User-Agent", "Jydn-Panel-Version-Checker")
-	token := strings.TrimSpace(os.Getenv("JYDN_GITHUB_TOKEN"))
+	token := githubAccessToken()
 	if token != "" {
 		request.Header.Set("Authorization", "Bearer "+token)
 	}
@@ -141,8 +161,20 @@ func (a *About) CheckVersion(c *gin.Context) {
 		return
 	}
 	defer response.Body.Close()
-	if response.StatusCode == http.StatusNotFound && token == "" {
-		apiReturn.Error(c, "私有 GitHub 仓库需要配置只读 JYDN_GITHUB_TOKEN 才能检查版本")
+	if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
+		if token == "" {
+			apiReturn.Error(c, "无法访问私有 GitHub 仓库，请在 conf/github-token 配置只读 Token")
+		} else {
+			apiReturn.Error(c, "GitHub Token 无效或权限不足")
+		}
+		return
+	}
+	if response.StatusCode == http.StatusNotFound {
+		if token == "" {
+			apiReturn.Error(c, "私有 GitHub 仓库需要在 conf/github-token 配置只读 Token")
+		} else {
+			apiReturn.Error(c, "GitHub 仓库或 Release 不存在，或 Token 无权访问")
+		}
 		return
 	}
 	if response.StatusCode != http.StatusOK {

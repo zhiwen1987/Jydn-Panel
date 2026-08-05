@@ -83,6 +83,7 @@
     const setVersion = value => versionNodes.forEach(node => { node.textContent = `v${String(value || '1.01').replace(/^v/i, '')}` })
     const checkVersion = async (showError = false) => {
       state.classList.remove('error'); mark.textContent = '…'; status.textContent = '正在检查新版本'; check.disabled = true
+        state.removeAttribute('title')
       try {
         const data = await aboutApi('about/checkVersion'); setVersion(data.currentVersion)
         mark.textContent = data.hasUpdate ? '↑' : '✓'
@@ -90,8 +91,9 @@
         if (data.hasUpdate && data.releaseUrl) check.onclick = () => window.open(data.releaseUrl, '_blank', 'noopener,noreferrer')
       }
       catch (error) {
-        state.classList.add('error'); mark.textContent = '!'; status.textContent = '版本检查失败'
-        if (showError) notify(`GitHub 版本检查失败：${error.message || error}`, true)
+        const message = error.message || '版本检查失败'
+        state.classList.add('error'); mark.textContent = '!'; status.textContent = message; state.title = message
+        if (showError) notify(message, true)
       }
       finally { check.disabled = false }
     }
