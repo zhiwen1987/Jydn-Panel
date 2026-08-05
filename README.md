@@ -95,13 +95,6 @@ docker run -d --name jydn-panel --restart=unless-stopped \
 - [中文文档](https://github.com/zhiwen1987/Jydn-Panel/blob/main/README.md)
 - [English Documentation](https://github.com/zhiwen1987/Jydn-Panel/blob/main/README_EN.md)
 
-## 🏖️ 其他
-
-- [Telegram 群](https://t.me/angeworld2024)
-- [安格超市](https://blog.angeworld.cc/market)
-- **芝麻开门**: [按需付费 AI 接口，官方 1/10 价格](https://ai.opendoor.sbs)
-- **超级门户**: [订阅付费 AI 接口，量大管饱的订阅制](https://ai.superdoor.top)
----
 
 ## ❤️ 感谢
 
