@@ -116,7 +116,7 @@ func GetSysVersionInfo() Version_Info {
 
 	return Version_Info{
 		Version_code: StrToInt(info[0]),
-		Version:      info[1],
+		Version:      strings.TrimSpace(info[1]),
 	}
 }
 

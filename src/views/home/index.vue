@@ -803,9 +803,8 @@ function getGroupDotTop(groupId?: number) {
                       <NEllipsis 
                         class="webpage-title flex-1" 
                         :tooltip="{ 
-                          content: item.title, 
                           placement: 'bottom',
-                          style: { maxWidth: `calc(${(panelState.panelConfig.maxWidth ?? '1200') + (panelState.panelConfig.maxWidthUnit ?? 'px')} * 0.9)`, whiteSpace: 'normal', wordBreak: 'break-all' }
+                          contentStyle: { maxWidth: `calc(${(panelState.panelConfig.maxWidth ?? '1200') + (panelState.panelConfig.maxWidthUnit ?? 'px')} * 0.9)`, whiteSpace: 'normal', wordBreak: 'break-all' }
                         }" 
                         :line-clamp="1"
                       >
