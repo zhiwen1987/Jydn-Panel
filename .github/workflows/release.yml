@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }}
+      release_tag: ${{ steps.version.outputs.release_tag }}
+      should_release: ${{ steps.version.outputs.should_release }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -42,7 +44,25 @@ jobs:
             echo "Tag $GITHUB_REF_NAME does not match VERSION v${VERSION}" >&2
             exit 1
           fi
+          RELEASE_TAG="v${VERSION}"
+          SHOULD_RELEASE=false
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            SHOULD_RELEASE=true
+          elif [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+            if git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
+              echo "Release tag ${RELEASE_TAG} already exists; skipping automatic release"
+            else
+              STATUS=$?
+              if [[ "$STATUS" -ne 2 ]]; then
+                echo "Failed to check release tag ${RELEASE_TAG}" >&2
+                exit "$STATUS"
+              fi
+              SHOULD_RELEASE=true
+            fi
+          fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "should_release=$SHOULD_RELEASE" >> "$GITHUB_OUTPUT"
 
   verify:
     runs-on: ubuntu-24.04
@@ -319,7 +339,7 @@ jobs:
 
   docker:
     if: github.event_name != 'pull_request'
-    needs: verify
+    needs: [prepare, verify]
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -351,8 +371,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=dev,enable=${{ github.ref == 'refs/heads/main' }}
-            type=ref,event=tag
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=raw,value=${{ needs.prepare.outputs.release_tag }},enable=${{ needs.prepare.outputs.should_release == 'true' }}
+            type=raw,value=latest,enable=${{ needs.prepare.outputs.should_release == 'true' }}
             type=sha,prefix=sha-
 
       - name: Build and push multi-architecture image
@@ -368,7 +388,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: needs.prepare.outputs.should_release == 'true'
     needs: [prepare, build-native, build-openwrt, package-docker-installer, docker]
     runs-on: ubuntu-24.04
     permissions:
@@ -394,16 +414,16 @@ jobs:
           cd release-assets
           sha256sum * | sort -k2 > SHA256SUMS.txt
           cd ..
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="${{ needs.prepare.outputs.version }}"
           awk -v heading="## v${VERSION}" '
             $0 == heading { found = 1; print; next }
             found && /^## v/ { exit }
             found { print }
           ' UPDATELOG.md > release-notes.md
           if [[ ! -s release-notes.md ]]; then
-            printf '# Jydn-Panel %s\n\n多平台安装包与 Docker 镜像。\n' "$GITHUB_REF_NAME" > release-notes.md
+            printf '# Jydn-Panel %s\n\n多平台安装包与 Docker 镜像。\n' "${{ needs.prepare.outputs.release_tag }}" > release-notes.md
           fi
-          printf '\n## Docker\n\n```bash\ndocker pull ghcr.io/%s:%s\n```\n' "${GITHUB_REPOSITORY,,}" "$GITHUB_REF_NAME" >> release-notes.md
+          printf '\n## Docker\n\n```bash\ndocker pull ghcr.io/%s:%s\n```\n' "${GITHUB_REPOSITORY,,}" "${{ needs.prepare.outputs.release_tag }}" >> release-notes.md
 
       - name: Create or update GitHub Release
         shell: bash
@@ -411,11 +431,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber
-            gh release edit "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file release-notes.md
+          RELEASE_TAG="${{ needs.prepare.outputs.release_tag }}"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" release-assets/* --clobber
+            gh release edit "$RELEASE_TAG" --title "$RELEASE_TAG" --notes-file release-notes.md
           else
-            gh release create "$GITHUB_REF_NAME" release-assets/* \
-              --title "$GITHUB_REF_NAME" \
+            gh release create "$RELEASE_TAG" release-assets/* \
+              --target "$GITHUB_SHA" \
+              --title "$RELEASE_TAG" \
               --notes-file release-notes.md
           fi
