@@ -1,12 +1,13 @@
 package system
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
+	"net/http"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -27,6 +28,20 @@ type dockerContainer struct {
 	State  string `json:"state"`
 	Status string `json:"status"`
 	Ports  string `json:"ports"`
+}
+
+type dockerEngineContainer struct {
+	ID     string   `json:"Id"`
+	Names  []string `json:"Names"`
+	Image  string   `json:"Image"`
+	State  string   `json:"State"`
+	Status string   `json:"Status"`
+	Ports  []struct {
+		IP          string `json:"IP"`
+		PrivatePort uint16 `json:"PrivatePort"`
+		PublicPort  uint16 `json:"PublicPort"`
+		Type        string `json:"Type"`
+	} `json:"Ports"`
 }
 
 type dockerActionRequest struct {
@@ -92,45 +107,79 @@ func (a *DockerApi) Info(c *gin.Context) {
 }
 
 func (a *DockerApi) Containers(c *gin.Context) {
-	output, err := runDockerCommand(12*time.Second, "ps", "-a", "--no-trunc", "--format", "{{json .}}")
+	transport := &http.Transport{
+		DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+			return (&net.Dialer{}).DialContext(ctx, "unix", "/var/run/docker.sock")
+		},
+	}
+	defer transport.CloseIdleConnections()
+	client := &http.Client{Transport: transport, Timeout: 12 * time.Second}
+	request, err := http.NewRequestWithContext(c.Request.Context(), http.MethodGet, "http://docker/containers/json?all=1", nil)
 	if err != nil {
 		apiReturn.Error(c, err.Error())
 		return
 	}
-
-	containers := make([]dockerContainer, 0)
-	scanner := bufio.NewScanner(strings.NewReader(output))
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
+	response, err := client.Do(request)
+	if err != nil {
+		message := strings.ToLower(err.Error())
+		switch {
+		case strings.Contains(message, "permission denied"):
+			apiReturn.Error(c, "无权访问 Docker Socket（/var/run/docker.sock）")
+		case strings.Contains(message, "no such file or directory"):
+			apiReturn.Error(c, "未找到 Docker Socket（/var/run/docker.sock），请检查宿主机挂载")
+		default:
+			apiReturn.Error(c, "无法连接 Docker Engine API："+err.Error())
 		}
-		raw := struct {
-			ID     string `json:"ID"`
-			Name   string `json:"Names"`
-			Image  string `json:"Image"`
-			State  string `json:"State"`
-			Status string `json:"Status"`
-			Ports  string `json:"Ports"`
-		}{}
-		if err := json.Unmarshal([]byte(line), &raw); err != nil {
-			apiReturn.Error(c, "unable to parse docker output")
-			return
-		}
-		containers = append(containers, dockerContainer{
-			ID:     raw.ID,
-			Name:   raw.Name,
-			Image:  raw.Image,
-			State:  raw.State,
-			Status: raw.Status,
-			Ports:  raw.Ports,
-		})
+		return
 	}
-	if err := scanner.Err(); err != nil {
-		apiReturn.Error(c, err.Error())
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		apiReturn.Error(c, fmt.Sprintf("Docker Engine API 返回状态 %d", response.StatusCode))
 		return
 	}
 
+	rawContainers := make([]dockerEngineContainer, 0)
+	if err := json.NewDecoder(response.Body).Decode(&rawContainers); err != nil {
+		apiReturn.Error(c, "无法解析 Docker Engine 容器列表")
+		return
+	}
+	containers := make([]dockerContainer, 0, len(rawContainers))
+	for _, raw := range rawContainers {
+		name := ""
+		if len(raw.Names) > 0 {
+			name = strings.TrimPrefix(raw.Names[0], "/")
+		}
+		if name == "" {
+			name = raw.ID
+			if len(name) > 12 {
+				name = name[:12]
+			}
+		}
+		ports := make([]string, 0, len(raw.Ports))
+		for _, port := range raw.Ports {
+			protocol := port.Type
+			if protocol == "" {
+				protocol = "tcp"
+			}
+			if port.PublicPort == 0 {
+				ports = append(ports, fmt.Sprintf("%d/%s", port.PrivatePort, protocol))
+				continue
+			}
+			host := port.IP
+			if host == "" {
+				host = "0.0.0.0"
+			}
+			ports = append(ports, fmt.Sprintf("%s:%d->%d/%s", host, port.PublicPort, port.PrivatePort, protocol))
+		}
+		containers = append(containers, dockerContainer{
+			ID:     raw.ID,
+			Name:   name,
+			Image:  raw.Image,
+			State:  raw.State,
+			Status: raw.Status,
+			Ports:  strings.Join(ports, ", "),
+		})
+	}
 	apiReturn.SuccessListData(c, containers, int64(len(containers)))
 }
 

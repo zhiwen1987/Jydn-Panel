@@ -73,31 +73,31 @@
       <header class="jydn-about-hero"><img src="/api/about/siteFavicon?v=${Date.now()}" alt="Jydn-Panel Logo"><h1>Jydn-Panel</h1><span class="jydn-about-version">v1.01</span><p class="jydn-about-tagline">简洁、安全、可扩展的导航与系统管理面板</p></header>
       <div class="jydn-about-grid">
         <section class="jydn-about-card"><h3>▣ 项目信息</h3><div class="jydn-about-rows"><div class="jydn-about-row"><span>项目地址</span><a href="https://github.com/zhiwen1987/Jydn-Panel" target="_blank" rel="noopener noreferrer">github.com/zhiwen1987/Jydn-Panel ↗</a></div><div class="jydn-about-row"><span>当前版本</span><b data-about-current>v1.01</b></div><div class="jydn-about-row"><span>运行端口</span><b>8008</b></div></div></section>
-        <section class="jydn-about-card"><h3>♢ 版本状态</h3><div class="jydn-version-state"><span class="jydn-version-mark" data-about-mark>…</span><strong data-about-status>正在检查新版本</strong><button type="button" class="primary" data-about-check>检查更新</button></div></section>
+        <section class="jydn-about-card"><h3>♢ 版本状态</h3><div class="jydn-version-state"><span class="jydn-version-mark" data-about-mark>…</span><strong data-about-status>正在检查新版本</strong></div></section>
       </div>
       <section class="jydn-about-card jydn-about-support"><h3>♡ 开源与支持</h3><nav class="jydn-about-links"><a href="https://github.com/zhiwen1987/Jydn-Panel" target="_blank" rel="noopener noreferrer"><span>◉ GitHub 项目主页</span><i>›</i></a><a href="https://github.com/zhiwen1987/Jydn-Panel/releases" target="_blank" rel="noopener noreferrer"><span>▣ 更新日志</span><i>›</i></a><a href="https://wpa.qq.com/msgrd?v=3&amp;uin=156701818&amp;site=qq&amp;menu=yes" target="_blank" rel="noopener noreferrer"><span>♧ QQ 客服</span><em>156701818</em><i>›</i></a><a href="https://www.kefu.me" target="_blank" rel="noopener noreferrer"><span>◎ 官方网站</span><em>https://www.kefu.me</em><i>›</i></a></nav></section>
       <footer class="jydn-about-footer">Powered By <a href="https://github.com/zhiwen1987/Jydn-Panel" target="_blank" rel="noopener noreferrer">Jydn-Panel</a></footer>`
     panel.appendChild(page)
     const versionNodes = qa('[data-about-current], .jydn-about-version', page)
-    const state = q('.jydn-version-state', page); const mark = q('[data-about-mark]', page); const status = q('[data-about-status]', page); const check = q('[data-about-check]', page)
+    const state = q('.jydn-version-state', page); const mark = q('[data-about-mark]', page); const status = q('[data-about-status]', page)
     const setVersion = value => versionNodes.forEach(node => { node.textContent = `v${String(value || '1.01').replace(/^v/i, '')}` })
     const checkVersion = async (showError = false) => {
-      state.classList.remove('error'); mark.textContent = '…'; status.textContent = '正在检查新版本'; check.disabled = true
+      state.classList.remove('error'); mark.textContent = '…'; status.textContent = '正在检查新版本'
         state.removeAttribute('title')
       try {
         const data = await aboutApi('about/checkVersion'); setVersion(data.currentVersion)
         mark.textContent = data.hasUpdate ? '↑' : '✓'
         status.textContent = data.hasUpdate ? `发现新版本 v${String(data.latestVersion).replace(/^v/i, '')}` : '当前已是最新版本'
-        if (data.hasUpdate && data.releaseUrl) check.onclick = () => window.open(data.releaseUrl, '_blank', 'noopener,noreferrer')
+
       }
       catch (error) {
         const message = error.message || '版本检查失败'
         state.classList.add('error'); mark.textContent = '!'; status.textContent = message; state.title = message
         if (showError) notify(message, true)
       }
-      finally { check.disabled = false }
+
     }
-    check.addEventListener('click', () => checkVersion(true))
+
     aboutApi('about').then(data => setVersion(data.versionName)).catch(() => {})
     checkVersion(false)
   }

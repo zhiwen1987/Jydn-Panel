@@ -3,6 +3,7 @@ package system
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"regexp"
@@ -22,11 +23,57 @@ type About struct{}
 
 var githubRepositoryPattern = regexp.MustCompile(`^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$`)
 var nonVersionNumberPattern = regexp.MustCompile(`[^0-9]+`)
+var projectVersionPattern = regexp.MustCompile(`^[0-9]+\.[0-9]{2}$`)
 
 type githubLatestRelease struct {
 	TagName     string `json:"tag_name"`
 	HTMLURL     string `json:"html_url"`
 	PublishedAt string `json:"published_at"`
+}
+
+func githubPublicLatestRelease(repository string) (githubLatestRelease, error) {
+	endpoints := []string{
+		fmt.Sprintf("https://cdn.jsdelivr.net/gh/%s@main/VERSION", repository),
+		fmt.Sprintf("https://fastly.jsdelivr.net/gh/%s@main/VERSION", repository),
+	}
+	var lastErr error
+	for _, endpoint := range endpoints {
+		request, err := http.NewRequest(http.MethodGet, endpoint, nil)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		request.Header.Set("User-Agent", "Jydn-Panel-Version-Checker")
+		response, err := (&http.Client{Timeout: 12 * time.Second}).Do(request)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		content, readErr := io.ReadAll(io.LimitReader(response.Body, 64))
+		response.Body.Close()
+		if readErr != nil {
+			lastErr = readErr
+			continue
+		}
+		if response.StatusCode != http.StatusOK {
+			lastErr = fmt.Errorf("公开 VERSION 返回状态 %d", response.StatusCode)
+			continue
+		}
+		version := strings.TrimSpace(string(content))
+		if !projectVersionPattern.MatchString(version) {
+			lastErr = fmt.Errorf("公开 VERSION 格式无效")
+			continue
+		}
+		tag := "v" + version
+		return githubLatestRelease{
+			TagName: tag,
+			HTMLURL: fmt.Sprintf("https://github.com/%s/releases/tag/%s", repository, tag),
+		}, nil
+	}
+	if lastErr == nil {
+		lastErr = fmt.Errorf("没有可用的公开 VERSION 来源")
+	}
+	return githubLatestRelease{}, lastErr
 }
 
 func githubAccessToken() string {
@@ -155,37 +202,48 @@ func (a *About) CheckVersion(c *gin.Context) {
 		request.Header.Set("Authorization", "Bearer "+token)
 	}
 
-	response, err := (&http.Client{Timeout: 12 * time.Second}).Do(request)
-	if err != nil {
-		apiReturn.Error(c, "GitHub 版本检查失败："+err.Error())
-		return
-	}
-	defer response.Body.Close()
-	if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
-		if token == "" {
-			apiReturn.Error(c, "无法访问私有 GitHub 仓库，请在 conf/github-token 配置只读 Token")
-		} else {
-			apiReturn.Error(c, "GitHub Token 无效或权限不足")
-		}
-		return
-	}
-	if response.StatusCode == http.StatusNotFound {
-		if token == "" {
-			apiReturn.Error(c, "私有 GitHub 仓库需要在 conf/github-token 配置只读 Token")
-		} else {
-			apiReturn.Error(c, "GitHub 仓库或 Release 不存在，或 Token 无权访问")
-		}
-		return
-	}
-	if response.StatusCode != http.StatusOK {
-		apiReturn.Error(c, fmt.Sprintf("GitHub 返回状态 %d", response.StatusCode))
-		return
-	}
-
 	latest := githubLatestRelease{}
-	if err := json.NewDecoder(response.Body).Decode(&latest); err != nil || strings.TrimSpace(latest.TagName) == "" {
-		apiReturn.Error(c, "无法解析 GitHub 最新版本")
-		return
+	if token == "" {
+		latest, _ = githubPublicLatestRelease(repository)
+	}
+	var apiErr error
+	apiStatus := 0
+	rateLimitRemaining := ""
+	if strings.TrimSpace(latest.TagName) == "" {
+		response, requestErr := (&http.Client{Timeout: 12 * time.Second}).Do(request)
+		apiErr = requestErr
+		if response != nil {
+			defer response.Body.Close()
+			apiStatus = response.StatusCode
+			rateLimitRemaining = strings.TrimSpace(response.Header.Get("X-RateLimit-Remaining"))
+		}
+		if apiErr == nil && apiStatus == http.StatusOK {
+			if err := json.NewDecoder(response.Body).Decode(&latest); err != nil || strings.TrimSpace(latest.TagName) == "" {
+				apiErr = fmt.Errorf("无法解析 GitHub 最新版本")
+			}
+		}
+	}
+	if strings.TrimSpace(latest.TagName) == "" {
+		fallback, fallbackErr := githubPublicLatestRelease(repository)
+		if fallbackErr == nil {
+			latest = fallback
+		} else {
+			switch {
+			case apiErr != nil:
+				apiReturn.Error(c, "GitHub 版本检查失败："+apiErr.Error())
+			case apiStatus == http.StatusUnauthorized && token != "":
+				apiReturn.Error(c, "GitHub Token 无效，请更新或删除 conf/github-token")
+			case apiStatus == http.StatusForbidden && rateLimitRemaining == "0":
+				apiReturn.Error(c, "GitHub API 请求已达限额，请稍后重试；只读 Token 为可选配置")
+			case apiStatus == http.StatusForbidden:
+				apiReturn.Error(c, "GitHub 拒绝访问版本信息，请检查网络代理或 Token 权限")
+			case apiStatus == http.StatusNotFound:
+				apiReturn.Error(c, "GitHub 仓库不存在或尚未发布正式 Release")
+			default:
+				apiReturn.Error(c, fmt.Sprintf("GitHub 版本检查失败（API 状态 %d）", apiStatus))
+			}
+			return
+		}
 	}
 	current := cmn.GetSysVersionInfo().Version
 	apiReturn.SuccessData(c, gin.H{
